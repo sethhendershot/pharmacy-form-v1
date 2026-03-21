@@ -20,7 +20,7 @@
             <p class="mb-3">Hello, <%= username %>!</p>
             <p class="mb-3">Role: Admin</p>
             
-            <h2 class="h4 mb-3">Forms</h2>
+            <h2 class="h4 mb-3">Forms <a href="/forms/new" class="btn btn-success btn-sm ms-2">Create New Form</a></h2>
             <table id="formsTable" class="table table-striped">
               <thead>
                 <tr>
@@ -56,7 +56,7 @@
           {
             data: null,
             render: function(data, type, row) {
-              return '<button class="btn btn-sm btn-primary">View</button> <button class="btn btn-sm btn-secondary">Edit</button>';
+              return '<a href="/forms/' + row.id + '/edit" class="btn btn-sm btn-secondary">Edit</a>';
             }
           }
         ]

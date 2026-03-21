@@ -60,6 +60,47 @@ app.get('/api/forms', (req, res) => {
   res.json(getForms());
 });
 
+app.get('/forms/new', (req, res) => {
+  if (!req.session.loggedin) return res.redirect('/login');
+  res.render('form', { editing: false });
+});
+
+app.post('/forms', (req, res) => {
+  if (!req.session.loggedin) return res.redirect('/login');
+  const { name, description } = req.body;
+  const forms = getForms();
+  const newForm = {
+    id: Date.now().toString(),
+    name,
+    description,
+    fields: [], // Placeholder for future
+    createdAt: new Date().toISOString()
+  };
+  forms.push(newForm);
+  saveForms(forms);
+  res.redirect('/');
+});
+
+app.get('/forms/:id/edit', (req, res) => {
+  if (!req.session.loggedin) return res.redirect('/login');
+  const forms = getForms();
+  const form = forms.find(f => f.id === req.params.id);
+  if (!form) return res.status(404).send('Form not found');
+  res.render('form', { editing: true, form });
+});
+
+app.post('/forms/:id', (req, res) => {
+  if (!req.session.loggedin) return res.redirect('/login');
+  const { name, description } = req.body;
+  const forms = getForms();
+  const formIndex = forms.findIndex(f => f.id === req.params.id);
+  if (formIndex === -1) return res.status(404).send('Form not found');
+  forms[formIndex].name = name;
+  forms[formIndex].description = description;
+  saveForms(forms);
+  res.redirect('/');
+});
+
 app.get('/logout', (req, res) => {
   req.session.destroy();
   res.redirect('/login');
