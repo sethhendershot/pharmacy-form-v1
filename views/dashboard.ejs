@@ -61,18 +61,37 @@
           {
             data: null,
             render: function(data, type, row) {
-              let actions = '<button class="btn btn-sm btn-info">View</button>';
+              let actions = '<button class="btn btn-sm btn-info view-btn" data-id="' + row.id + '">View</button>';
               if (row.status === 'submitted') {
-                actions += ' <button class="btn btn-sm btn-warning">Move to Review</button>';
+                actions += ' <button class="btn btn-sm btn-warning approve-btn" data-id="' + row.id + '" data-status="manager approved">Manager Approve</button>';
               } else if (row.status === 'manager approved') {
-                actions += ' <button class="btn btn-sm btn-success">Director Approve</button> <button class="btn btn-sm btn-danger">Reject</button>';
+                actions += ' <button class="btn btn-sm btn-success approve-btn" data-id="' + row.id + '" data-status="director approved">Director Approve</button>';
               } else if (row.status === 'director approved') {
-                actions += ' <button class="btn btn-sm btn-secondary">Archive</button>';
+                actions += ' <button class="btn btn-sm btn-secondary approve-btn" data-id="' + row.id + '" data-status="archived">Archive</button>';
               }
               return actions;
             }
           }
         ]
+      });
+
+      // Handle approve buttons
+      $(document).on('click', '.approve-btn', function() {
+        const id = $(this).data('id');
+        const status = $(this).data('status');
+        $.post('/entries/' + id + '/status', { status: status }, function(response) {
+          if (response.success) {
+            $('#entriesTable').DataTable().ajax.reload();
+          } else {
+            alert('Error updating status');
+          }
+        });
+      });
+
+      // Handle view button (placeholder)
+      $(document).on('click', '.view-btn', function() {
+        const id = $(this).data('id');
+        alert('View entry ' + id); // Placeholder
       });
     });
   </script>

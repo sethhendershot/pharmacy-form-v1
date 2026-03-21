@@ -102,6 +102,19 @@ app.get('/api/entries', (req, res) => {
   res.json(forms[0].entries || []);
 });
 
+app.post('/entries/:id/status', (req, res) => {
+  if (!req.session.loggedin) return res.status(401).json({ error: 'Not logged in' });
+  const { status } = req.body;
+  const forms = getForms();
+  const entry = forms[0].entries.find(e => e.id === req.params.id);
+  if (!entry) return res.status(404).json({ error: 'Entry not found' });
+  entry.status = status;
+  entry.updatedAt = new Date().toISOString();
+  entry.updatedBy = req.session.username;
+  saveForms(forms);
+  res.json({ success: true });
+});
+
 app.get('/logout', (req, res) => {
   req.session.destroy();
   res.redirect('/login');
