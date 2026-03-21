@@ -17,10 +17,23 @@
           <div class="card-body">
             <p><%= form.description %></p>
             <form action="/forms/<%= form.id %>/entries" method="POST">
-              <div class="mb-3">
-                <label for="data" class="form-label">Entry Data (JSON)</label>
-                <textarea class="form-control" id="data" name="data" rows="5" placeholder='{"field1": "value1", "field2": "value2"}' required></textarea>
-              </div>
+              <% form.fields.forEach(field => { %>
+                <div class="mb-3">
+                  <label for="<%= field.label.replace(/\s/g, '') %>" class="form-label"><%= field.label %> <%= field.required ? '*' : '' %></label>
+                  <% if (field.type === 'textarea') { %>
+                    <textarea class="form-control" id="<%= field.label.replace(/\s/g, '') %>" name="<%= field.label %>" rows="3" <%= field.required ? 'required' : '' %>></textarea>
+                  <% } else if (field.type === 'select') { %>
+                    <select class="form-control" id="<%= field.label.replace(/\s/g, '') %>" name="<%= field.label %>" <%= field.required ? 'required' : '' %>>
+                      <option value="">Select...</option>
+                      <% field.options.forEach(opt => { %>
+                        <option value="<%= opt %>"><%= opt %></option>
+                      <% }); %>
+                    </select>
+                  <% } else { %>
+                    <input type="<%= field.type || 'text' %>" class="form-control" id="<%= field.label.replace(/\s/g, '') %>" name="<%= field.label %>" <%= field.required ? 'required' : '' %>>
+                  <% } %>
+                </div>
+              <% }); %>
               <button type="submit" class="btn btn-primary">Submit Entry</button>
               <a href="/" class="btn btn-secondary">Cancel</a>
             </form>

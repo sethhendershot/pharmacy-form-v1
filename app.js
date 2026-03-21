@@ -30,6 +30,18 @@ const saveForms = (forms) => {
   fs.writeFileSync('forms.json', JSON.stringify(forms, null, 2));
 };
 
+const getFormInputs = () => {
+  try {
+    return JSON.parse(fs.readFileSync('form-inputs.json', 'utf8'));
+  } catch (err) {
+    return [];
+  }
+};
+
+const saveFormInputs = (inputs) => {
+  fs.writeFileSync('form-inputs.json', JSON.stringify(inputs, null, 2));
+};
+
 app.get('/', (req, res) => {
   if (req.session.loggedin) {
     res.render('dashboard', { username: req.session.username });
@@ -67,18 +79,30 @@ app.get('/forms/new', (req, res) => {
 
 app.post('/forms', (req, res) => {
   if (!req.session.loggedin) return res.redirect('/login');
-  const { name, description } = req.body;
+  const { name, description, fields } = req.body;
+  let parsedFields = [];
+  if (fields) {
+    try {
+      parsedFields = JSON.parse(fields);
+    } catch (e) {
+      return res.status(400).send('Invalid fields JSON');
+    }
+  }
   const forms = getForms();
   const newForm = {
     id: Date.now().toString(),
     name,
     description,
-    fields: [], // Placeholder for future
-    entries: [], // For data entries
+    fields: parsedFields,
+    entries: [],
     createdAt: new Date().toISOString()
   };
   forms.push(newForm);
   saveForms(forms);
+  // Save to form-inputs.json
+  const inputs = getFormInputs();
+  inputs.push({ formId: newForm.id, fields: parsedFields });
+  saveFormInputs(inputs);
   res.redirect('/');
 });
 
@@ -92,13 +116,31 @@ app.get('/forms/:id/edit', (req, res) => {
 
 app.post('/forms/:id', (req, res) => {
   if (!req.session.loggedin) return res.redirect('/login');
-  const { name, description } = req.body;
+  const { name, description, fields } = req.body;
+  let parsedFields = [];
+  if (fields) {
+    try {
+      parsedFields = JSON.parse(fields);
+    } catch (e) {
+      return res.status(400).send('Invalid fields JSON');
+    }
+  }
   const forms = getForms();
   const formIndex = forms.findIndex(f => f.id === req.params.id);
   if (formIndex === -1) return res.status(404).send('Form not found');
   forms[formIndex].name = name;
   forms[formIndex].description = description;
+  forms[formIndex].fields = parsedFields;
   saveForms(forms);
+  // Update form-inputs.json
+  const inputs = getFormInputs();
+  const inputIndex = inputs.findIndex(i => i.formId === req.params.id);
+  if (inputIndex !== -1) {
+    inputs[inputIndex].fields = parsedFields;
+  } else {
+    inputs.push({ formId: req.params.id, fields: parsedFields });
+  }
+  saveFormInputs(inputs);
   res.redirect('/');
 });
 
@@ -112,19 +154,13 @@ app.get('/forms/:id/submit', (req, res) => {
 
 app.post('/forms/:id/entries', (req, res) => {
   if (!req.session.loggedin) return res.redirect('/login');
-  const { data } = req.body;
-  let parsedData;
-  try {
-    parsedData = JSON.parse(data);
-  } catch (e) {
-    return res.status(400).send('Invalid JSON data');
-  }
+  const data = req.body; // Form data as object
   const forms = getForms();
   const form = forms.find(f => f.id === req.params.id);
   if (!form) return res.status(404).send('Form not found');
   const newEntry = {
     id: Date.now().toString(),
-    data: parsedData,
+    data,
     submittedAt: new Date().toISOString(),
     status: 'pending'
   };

@@ -24,6 +24,11 @@
                 <label for="description" class="form-label">Description</label>
                 <textarea class="form-control" id="description" name="description" rows="3"><%= editing ? form.description : '' %></textarea>
               </div>
+              <div class="mb-3">
+                <label for="fields" class="form-label">Form Fields (JSON array)</label>
+                <textarea class="form-control" id="fields" name="fields" rows="5" placeholder='[{"label": "Name", "type": "text", "required": true}, {"label": "Email", "type": "email", "required": true}]'><%= editing ? JSON.stringify(form.fields || [], null, 2) : '' %></textarea>
+                <small class="form-text text-muted">Define fields as JSON array. Types: text, email, textarea, select (add "options": ["opt1", "opt2"] for select).</small>
+              </div>
               <button type="submit" class="btn btn-primary"><%= editing ? 'Update Form' : 'Create Form' %></button>
               <a href="/" class="btn btn-secondary">Cancel</a>
             </form>
