@@ -1,5 +1,6 @@
 const express = require('express');
 const session = require('express-session');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -12,6 +13,22 @@ app.use(session({
 }));
 
 app.set('view engine', 'ejs');
+
+// Load roles from .env
+const roles = process.env.ROLES ? process.env.ROLES.split(',').map(r => r.trim()) : [];
+
+// Helper functions for forms
+const getForms = () => {
+  try {
+    return JSON.parse(fs.readFileSync('forms.json', 'utf8'));
+  } catch (err) {
+    return [];
+  }
+};
+
+const saveForms = (forms) => {
+  fs.writeFileSync('forms.json', JSON.stringify(forms, null, 2));
+};
 
 app.get('/', (req, res) => {
   if (req.session.loggedin) {
@@ -37,6 +54,10 @@ app.post('/login', (req, res) => {
   } else {
     res.render('login', { error: 'Invalid username or password' });
   }
+});
+
+app.get('/api/forms', (req, res) => {
+  res.json(getForms());
 });
 
 app.get('/logout', (req, res) => {
