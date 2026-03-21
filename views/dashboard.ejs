@@ -47,7 +47,10 @@
   <script>
     $(document).ready(function() {
       $('#formsTable').DataTable({
-        ajax: '/api/forms',
+        ajax: {
+          url: '/api/forms',
+          dataSrc: ''
+        },
         columns: [
           { data: 'id' },
           { data: 'name' },
