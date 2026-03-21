@@ -44,7 +44,7 @@
     $(document).ready(function() {
       $('#entriesTable').DataTable({
         ajax: {
-          url: '/api/forms/<%= form.id %>/entries',
+          url: '/api/entries',
           dataSrc: ''
         },
         columns: [

@@ -16,7 +16,7 @@
           </div>
           <div class="card-body">
             <p><%= form.description %></p>
-            <form action="/forms/<%= form.id %>/entries" method="POST">
+            <form action="/submit" method="POST">
               <% form.fields.forEach(field => { %>
                 <div class="mb-3">
                   <label for="<%= field.label.replace(/\s/g, '') %>" class="form-label"><%= field.label %> <%= field.required ? '*' : '' %></label>
