@@ -20,14 +20,15 @@
             <p class="mb-3">Hello, <%= username %>!</p>
             <p class="mb-3">Role: Admin</p>
             
-            <h2 class="h4 mb-3">Forms <a href="/forms/new" class="btn btn-success btn-sm ms-2">Create New Form</a></h2>
-            <table id="formsTable" class="table table-striped">
+            <h2 class="h4 mb-3">Pyxis Access Requests <a href="/submit" class="btn btn-success btn-sm ms-2">Submit New Request</a></h2>
+            <table id="entriesTable" class="table table-striped">
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Name</th>
-                  <th>Description</th>
-                  <th>Created At</th>
+                  <th>Employee Name</th>
+                  <th>Department</th>
+                  <th>Status</th>
+                  <th>Submitted At</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -46,20 +47,29 @@
   <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
   <script>
     $(document).ready(function() {
-      $('#formsTable').DataTable({
+      $('#entriesTable').DataTable({
         ajax: {
-          url: '/api/forms',
+          url: '/api/entries',
           dataSrc: ''
         },
         columns: [
           { data: 'id' },
-          { data: 'name' },
-          { data: 'description' },
-          { data: 'createdAt' },
+          { data: 'data.Employee Name' },
+          { data: 'data.Department' },
+          { data: 'status' },
+          { data: 'submittedAt' },
           {
             data: null,
             render: function(data, type, row) {
-              return '<a href="/forms/' + row.id + '/submit" class="btn btn-sm btn-primary me-1">Submit Entry</a> <a href="/forms/' + row.id + '/entries" class="btn btn-sm btn-info me-1">View Entries</a> <a href="/forms/' + row.id + '/edit" class="btn btn-sm btn-secondary">Edit</a>';
+              let actions = '<button class="btn btn-sm btn-info">View</button>';
+              if (row.status === 'submitted') {
+                actions += ' <button class="btn btn-sm btn-warning">Move to Review</button>';
+              } else if (row.status === 'manager approved') {
+                actions += ' <button class="btn btn-sm btn-success">Director Approve</button> <button class="btn btn-sm btn-danger">Reject</button>';
+              } else if (row.status === 'director approved') {
+                actions += ' <button class="btn btn-sm btn-secondary">Archive</button>';
+              }
+              return actions;
             }
           }
         ]

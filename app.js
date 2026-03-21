@@ -17,29 +17,27 @@ app.set('view engine', 'ejs');
 // Load roles from .env
 const roles = process.env.ROLES ? process.env.ROLES.split(',').map(r => r.trim()) : [];
 
+// Define the single static form
+const STATIC_FORM = {
+  id: 'pyxis-request',
+  name: 'Pyxis Medication Machine Access Request',
+  description: 'Request access to Pyxis medication machine',
+  fields: [
+    { label: 'Employee Name', type: 'text', required: true },
+    { label: 'Employee ID', type: 'text', required: true },
+    { label: 'Department', type: 'text', required: true },
+    { label: 'Reason for Access', type: 'textarea', required: true },
+    { label: 'Access Level', type: 'select', options: ['Read', 'Dispense', 'Admin'], required: true }
+  ],
+  entries: []
+};
+
 // Helper functions for forms
-const getForms = () => {
-  try {
-    return JSON.parse(fs.readFileSync('forms.json', 'utf8'));
-  } catch (err) {
-    return [];
-  }
-};
-
+const getForms = () => [STATIC_FORM]; // Return array with single form
 const saveForms = (forms) => {
+  // Since static, just update entries
+  STATIC_FORM.entries = forms[0].entries;
   fs.writeFileSync('forms.json', JSON.stringify(forms, null, 2));
-};
-
-const getFormInputs = () => {
-  try {
-    return JSON.parse(fs.readFileSync('form-inputs.json', 'utf8'));
-  } catch (err) {
-    return [];
-  }
-};
-
-const saveFormInputs = (inputs) => {
-  fs.writeFileSync('form-inputs.json', JSON.stringify(inputs, null, 2));
 };
 
 app.get('/', (req, res) => {
@@ -72,116 +70,36 @@ app.get('/api/forms', (req, res) => {
   res.json(getForms());
 });
 
-app.get('/forms/new', (req, res) => {
+app.get('/submit', (req, res) => {
   if (!req.session.loggedin) return res.redirect('/login');
-  res.render('form', { editing: false });
+  res.render('submit', { form: STATIC_FORM });
 });
 
-app.post('/forms', (req, res) => {
-  if (!req.session.loggedin) return res.redirect('/login');
-  const { name, description, fields } = req.body;
-  let parsedFields = [];
-  if (fields) {
-    try {
-      parsedFields = JSON.parse(fields);
-    } catch (e) {
-      return res.status(400).send('Invalid fields JSON');
-    }
-  }
-  const forms = getForms();
-  const newForm = {
-    id: Date.now().toString(),
-    name,
-    description,
-    fields: parsedFields,
-    entries: [],
-    createdAt: new Date().toISOString()
-  };
-  forms.push(newForm);
-  saveForms(forms);
-  // Save to form-inputs.json
-  const inputs = getFormInputs();
-  inputs.push({ formId: newForm.id, fields: parsedFields });
-  saveFormInputs(inputs);
-  res.redirect('/');
-});
-
-app.get('/forms/:id/edit', (req, res) => {
-  if (!req.session.loggedin) return res.redirect('/login');
-  const forms = getForms();
-  const form = forms.find(f => f.id === req.params.id);
-  if (!form) return res.status(404).send('Form not found');
-  res.render('form', { editing: true, form });
-});
-
-app.post('/forms/:id', (req, res) => {
-  if (!req.session.loggedin) return res.redirect('/login');
-  const { name, description, fields } = req.body;
-  let parsedFields = [];
-  if (fields) {
-    try {
-      parsedFields = JSON.parse(fields);
-    } catch (e) {
-      return res.status(400).send('Invalid fields JSON');
-    }
-  }
-  const forms = getForms();
-  const formIndex = forms.findIndex(f => f.id === req.params.id);
-  if (formIndex === -1) return res.status(404).send('Form not found');
-  forms[formIndex].name = name;
-  forms[formIndex].description = description;
-  forms[formIndex].fields = parsedFields;
-  saveForms(forms);
-  // Update form-inputs.json
-  const inputs = getFormInputs();
-  const inputIndex = inputs.findIndex(i => i.formId === req.params.id);
-  if (inputIndex !== -1) {
-    inputs[inputIndex].fields = parsedFields;
-  } else {
-    inputs.push({ formId: req.params.id, fields: parsedFields });
-  }
-  saveFormInputs(inputs);
-  res.redirect('/');
-});
-
-app.get('/forms/:id/submit', (req, res) => {
-  if (!req.session.loggedin) return res.redirect('/login');
-  const forms = getForms();
-  const form = forms.find(f => f.id === req.params.id);
-  if (!form) return res.status(404).send('Form not found');
-  res.render('submit', { form });
-});
-
-app.post('/forms/:id/entries', (req, res) => {
+app.post('/submit', (req, res) => {
   if (!req.session.loggedin) return res.redirect('/login');
   const data = req.body; // Form data as object
   const forms = getForms();
-  const form = forms.find(f => f.id === req.params.id);
-  if (!form) return res.status(404).send('Form not found');
+  const form = forms[0]; // Single form
   const newEntry = {
     id: Date.now().toString(),
     data,
     submittedAt: new Date().toISOString(),
-    status: 'pending'
+    status: 'submitted',
+    submittedBy: req.session.username
   };
   form.entries.push(newEntry);
   saveForms(forms);
-  res.redirect('/forms/' + req.params.id + '/entries');
+  res.redirect('/entries');
 });
 
-app.get('/forms/:id/entries', (req, res) => {
+app.get('/entries', (req, res) => {
   if (!req.session.loggedin) return res.redirect('/login');
-  const forms = getForms();
-  const form = forms.find(f => f.id === req.params.id);
-  if (!form) return res.status(404).send('Form not found');
-  res.render('entries', { form });
+  res.render('entries', { form: STATIC_FORM });
 });
 
-app.get('/api/forms/:id/entries', (req, res) => {
+app.get('/api/entries', (req, res) => {
   const forms = getForms();
-  const form = forms.find(f => f.id === req.params.id);
-  if (!form) return res.status(404).json({ error: 'Form not found' });
-  res.json(form.entries || []);
+  res.json(forms[0].entries || []);
 });
 
 app.get('/logout', (req, res) => {
