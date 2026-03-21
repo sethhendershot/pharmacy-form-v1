@@ -74,6 +74,7 @@ app.post('/forms', (req, res) => {
     name,
     description,
     fields: [], // Placeholder for future
+    entries: [], // For data entries
     createdAt: new Date().toISOString()
   };
   forms.push(newForm);
@@ -99,6 +100,52 @@ app.post('/forms/:id', (req, res) => {
   forms[formIndex].description = description;
   saveForms(forms);
   res.redirect('/');
+});
+
+app.get('/forms/:id/submit', (req, res) => {
+  if (!req.session.loggedin) return res.redirect('/login');
+  const forms = getForms();
+  const form = forms.find(f => f.id === req.params.id);
+  if (!form) return res.status(404).send('Form not found');
+  res.render('submit', { form });
+});
+
+app.post('/forms/:id/entries', (req, res) => {
+  if (!req.session.loggedin) return res.redirect('/login');
+  const { data } = req.body;
+  let parsedData;
+  try {
+    parsedData = JSON.parse(data);
+  } catch (e) {
+    return res.status(400).send('Invalid JSON data');
+  }
+  const forms = getForms();
+  const form = forms.find(f => f.id === req.params.id);
+  if (!form) return res.status(404).send('Form not found');
+  const newEntry = {
+    id: Date.now().toString(),
+    data: parsedData,
+    submittedAt: new Date().toISOString(),
+    status: 'pending'
+  };
+  form.entries.push(newEntry);
+  saveForms(forms);
+  res.redirect('/forms/' + req.params.id + '/entries');
+});
+
+app.get('/forms/:id/entries', (req, res) => {
+  if (!req.session.loggedin) return res.redirect('/login');
+  const forms = getForms();
+  const form = forms.find(f => f.id === req.params.id);
+  if (!form) return res.status(404).send('Form not found');
+  res.render('entries', { form });
+});
+
+app.get('/api/forms/:id/entries', (req, res) => {
+  const forms = getForms();
+  const form = forms.find(f => f.id === req.params.id);
+  if (!form) return res.status(404).json({ error: 'Form not found' });
+  res.json(form.entries || []);
 });
 
 app.get('/logout', (req, res) => {
