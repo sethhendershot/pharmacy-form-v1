@@ -23,11 +23,20 @@ const STATIC_FORM = {
   name: 'Pyxis Medication Machine Access Request',
   description: 'Request access to Pyxis medication machine',
   fields: [
-    { label: 'Employee Name', type: 'text', required: true },
-    { label: 'Employee ID', type: 'text', required: true },
-    { label: 'Department', type: 'text', required: true },
-    { label: 'Reason for Access', type: 'textarea', required: true },
-    { label: 'Access Level', type: 'select', options: ['Read', 'Dispense', 'Admin'], required: true }
+    { label: 'User Type', type: 'select', options: ['Trinity Employee', 'Contract Staff or Locum Anesthesia Provider'], required: true },
+    { label: 'First Name', type: 'text', required: true },
+    { label: 'Middle Initial', type: 'text' },
+    { label: 'Last Name', type: 'text', required: true },
+    { label: 'Professional Credentials', type: 'text', required: true },
+    { label: 'Primary Unit to be assigned', type: 'text', required: true },
+    { label: 'Pyxis online tutorial completion date', type: 'date' },
+    { label: 'Pyxis Policy/Procedure review date', type: 'date' },
+    { label: 'Employee Signature', type: 'signature', required: true },
+    { label: 'Manager Verify Accuracy', type: 'checkbox' },
+    { label: 'Manager Requested Access', type: 'checkbox' },
+    { label: 'Manager Verified Login', type: 'checkbox' },
+    { label: 'Manager Signature', type: 'signature' },
+    { label: 'Pharmacy Signature', type: 'signature' }
   ],
   entries: []
 };

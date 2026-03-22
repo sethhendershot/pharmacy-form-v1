@@ -18,23 +18,51 @@
             <p><%= form.description %></p>
             <form action="/submit" method="POST">
               <% form.fields.forEach(field => { %>
-                <div class="mb-3">
-                  <label for="<%= field.label.replace(/\s/g, '') %>" class="form-label"><%= field.label %> <%= field.required ? '*' : '' %></label>
-                  <% if (field.type === 'textarea') { %>
-                    <textarea class="form-control" id="<%= field.label.replace(/\s/g, '') %>" name="<%= field.label %>" rows="3" <%= field.required ? 'required' : '' %>></textarea>
-                  <% } else if (field.type === 'select') { %>
-                    <select class="form-control" id="<%= field.label.replace(/\s/g, '') %>" name="<%= field.label %>" <%= field.required ? 'required' : '' %>>
-                      <option value="">Select...</option>
-                      <% field.options.forEach(opt => { %>
-                        <option value="<%= opt %>"><%= opt %></option>
-                      <% }); %>
-                    </select>
-                  <% } else { %>
-                    <input type="<%= field.type || 'text' %>" class="form-control" id="<%= field.label.replace(/\s/g, '') %>" name="<%= field.label %>" <%= field.required ? 'required' : '' %>>
-                  <% } %>
-                </div>
+                <% if (field.type === 'signature') { %>
+                  <div class="mb-3">
+                    <label class="form-label"><%= field.label %> <%= field.required ? '*' : '' %></label>
+                    <canvas id="<%= field.label.replace(/\s/g, '') %>Canvas" width="400" height="200" style="border:1px solid #000;"></canvas>
+                    <input type="hidden" name="<%= field.label %>" id="<%= field.label.replace(/\s/g, '') %>Data">
+                    <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="clearSignature('<%= field.label.replace(/\s/g, '') %>')">Clear</button>
+                  </div>
+                <% } else if (field.type === 'checkbox') { %>
+                  <div class="mb-3 form-check">
+                    <input class="form-check-input" type="checkbox" name="<%= field.label %>" id="<%= field.label.replace(/\s/g, '') %>">
+                    <label class="form-check-label" for="<%= field.label.replace(/\s/g, '') %>">
+                      <%= field.label %>
+                    </label>
+                  </div>
+                <% } else { %>
+                  <div class="mb-3">
+                    <label for="<%= field.label.replace(/\s/g, '') %>" class="form-label"><%= field.label %> <%= field.required ? '*' : '' %></label>
+                    <% if (field.type === 'textarea') { %>
+                      <textarea class="form-control" id="<%= field.label.replace(/\s/g, '') %>" name="<%= field.label %>" rows="3" <%= field.required ? 'required' : '' %>></textarea>
+                    <% } else if (field.type === 'select') { %>
+                      <select class="form-control" id="<%= field.label.replace(/\s/g, '') %>" name="<%= field.label %>" <%= field.required ? 'required' : '' %>>
+                        <option value="">Select...</option>
+                        <% field.options.forEach(opt => { %>
+                          <option value="<%= opt %>"><%= opt %></option>
+                        <% }); %>
+                      </select>
+                    <% } else { %>
+                      <input type="<%= field.type || 'text' %>" class="form-control" id="<%= field.label.replace(/\s/g, '') %>" name="<%= field.label %>" <%= field.required ? 'required' : '' %>>
+                    <% } %>
+                  </div>
+                <% } %>
               <% }); %>
-              <button type="submit" class="btn btn-primary">Submit Entry</button>
+              
+              <div class="mb-3">
+                <h5>PYXIS ES USER SECURITY AGREEMENT</h5>
+                <p>The undersigned individual understands the following:</p>
+                <ol>
+                  <li>The ID assigned in combination with the password selected is the individual's electronic signature. It will be used to track all transactions on the Pyxis MedStation and must not be shared with anyone.</li>
+                  <li>By signing this form, the individual agrees to abide by the policy and procedures for Pyxis Med Station system now in place and comply with those as published at a future date, and have read a current copy of the Policy and Procedure.</li>
+                  <li>The undersigned agrees to use BioID whenever possible.</li>
+                  <li>At the end of every shift the undersigned individual will check for discrepancies and resolve them immediately before leaving per policy, otherwise the undersigned is legally responsible for all transactions listed under his/her name.</li>
+                </ol>
+              </div>
+              
+              <button type="submit" class="btn btn-primary">Submit Request</button>
               <a href="/" class="btn btn-secondary">Cancel</a>
             </form>
           </div>
@@ -43,5 +71,60 @@
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Signature pad functionality
+    function initSignaturePad(canvasId) {
+      const canvas = document.getElementById(canvasId + 'Canvas');
+      const ctx = canvas.getContext('2d');
+      let drawing = false;
+
+      canvas.addEventListener('mousedown', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDrawing);
+      canvas.addEventListener('mouseout', stopDrawing);
+
+      // Touch events for mobile
+      canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        startDrawing(e.touches[0]);
+      });
+      canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        draw(e.touches[0]);
+      });
+      canvas.addEventListener('touchend', stopDrawing);
+
+      function startDrawing(e) {
+        drawing = true;
+        ctx.beginPath();
+        ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+      }
+
+      function draw(e) {
+        if (!drawing) return;
+        ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+        ctx.stroke();
+      }
+
+      function stopDrawing() {
+        drawing = false;
+        // Save to hidden input
+        const dataURL = canvas.toDataURL();
+        document.getElementById(canvasId + 'Data').value = dataURL;
+      }
+    }
+
+    // Initialize signature pads
+    initSignaturePad('EmployeeSignature');
+    initSignaturePad('ManagerSignature');
+    initSignaturePad('PharmacySignature');
+
+    function clearSignature(canvasId) {
+      const canvas = document.getElementById(canvasId + 'Canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      document.getElementById(canvasId + 'Data').value = '';
+    }
+  </script>
 </body>
 </html>
