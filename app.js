@@ -50,11 +50,7 @@ const saveForms = (forms) => {
 };
 
 app.get('/', (req, res) => {
-  if (req.session.loggedin) {
-    res.render('dashboard', { username: req.session.username });
-  } else {
-    res.redirect('/login');
-  }
+  res.render('index');
 });
 
 app.get('/login', (req, res) => {
@@ -85,7 +81,6 @@ app.get('/submit', (req, res) => {
 });
 
 app.post('/submit', (req, res) => {
-  if (!req.session.loggedin) return res.redirect('/login');
   const data = req.body; // Form data as object
   const forms = getForms();
   const form = forms[0]; // Single form
@@ -94,32 +89,72 @@ app.post('/submit', (req, res) => {
     data,
     submittedAt: new Date().toISOString(),
     status: 'submitted',
-    submittedBy: req.session.username
+    submittedBy: 'employee' // Placeholder
   };
   form.entries.push(newEntry);
   saveForms(forms);
-  res.redirect('/entries');
+  const nextLink = `http://localhost:3000/stage/2/${newEntry.id}`;
+  console.log('Email link for manager:', nextLink); // Placeholder for email
+  res.render('success', { nextLink });
 });
 
-app.get('/entries', (req, res) => {
-  if (!req.session.loggedin) return res.redirect('/login');
-  res.render('entries', { form: STATIC_FORM });
+app.get('/stage/:stage/:id', (req, res) => {
+  const { stage, id } = req.params;
+  const forms = getForms();
+  const entry = forms[0].entries.find(e => e.id === id);
+  if (!entry) return res.status(404).send('Entry not found');
+  // Check if stage matches current status
+  if ((stage == 2 && entry.status !== 'submitted') || (stage == 3 && entry.status !== 'manager approved')) {
+    return res.status(403).send('Invalid stage for this entry');
+  }
+  res.render('stage', { stage: parseInt(stage), entry });
+});
+
+app.post('/stage/:stage/:id', (req, res) => {
+  const { stage, id } = req.params;
+  const forms = getForms();
+  const entry = forms[0].entries.find(e => e.id === id);
+  if (!entry) return res.status(404).send('Entry not found');
+  
+  if (stage == 2) {
+    // Manager data
+    entry.data = { ...entry.data, ...req.body };
+    entry.status = 'manager approved';
+    entry.updatedAt = new Date().toISOString();
+    const nextLink = `http://localhost:3000/stage/3/${entry.id}`;
+    console.log('Email link for director:', nextLink); // Placeholder
+    saveForms(forms);
+    res.render('success', { nextLink });
+  } else if (stage == 3) {
+    // Director decision
+    const { decision } = req.body;
+    entry.data = { ...entry.data, ...req.body };
+    entry.status = decision === 'approved' ? 'director approved' : 'denied';
+    entry.updatedAt = new Date().toISOString();
+    saveForms(forms);
+    res.render('success', { nextLink: null }); // No next link
+  }
+});
+
+app.get('/admin', (req, res) => {
+  if (!req.session.loggedin || req.session.role !== 'admin') return res.redirect('/');
+  res.render('dashboard');
 });
 
 app.get('/api/entries', (req, res) => {
+  if (!req.session.loggedin || req.session.role !== 'admin') return res.status(403).json({ error: 'Access denied' });
   const forms = getForms();
   res.json(forms[0].entries || []);
 });
 
 app.post('/entries/:id/status', (req, res) => {
-  if (!req.session.loggedin) return res.status(401).json({ error: 'Not logged in' });
+  if (!req.session.loggedin || req.session.role !== 'admin') return res.status(403).json({ error: 'Access denied' });
   const { status } = req.body;
   const forms = getForms();
   const entry = forms[0].entries.find(e => e.id === req.params.id);
   if (!entry) return res.status(404).json({ error: 'Entry not found' });
   entry.status = status;
   entry.updatedAt = new Date().toISOString();
-  entry.updatedBy = req.session.username;
   saveForms(forms);
   res.json({ success: true });
 });

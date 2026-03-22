@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= stage === 2 ? 'Manager Review' : 'Director Approval' %></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-md-10">
+        <div class="card">
+          <div class="card-header">
+            <h1 class="h3 mb-0"><%= stage === 2 ? 'Manager Review' : 'Director Approval' %></h1>
+          </div>
+          <div class="card-body">
+            <h4>Submitted Data</h4>
+            <div class="row">
+              <% Object.keys(entry.data).forEach(key => { %>
+                <% if (key.includes('Signature')) { %>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label"><%= key %></label>
+                    <img src="<%= entry.data[key] %>" alt="Signature" style="border:1px solid #000; max-width:100%;">
+                  </div>
+                <% } else { %>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label"><%= key %></label>
+                    <input type="text" class="form-control" value="<%= entry.data[key] %>" readonly>
+                  </div>
+                <% } %>
+              <% }); %>
+            </div>
+            
+            <hr>
+            
+            <form action="/stage/<%= stage %>/<%= entry.id %>" method="POST">
+              <% if (stage === 2) { %>
+                <h4>Manager Verification</h4>
+                <div class="mb-3 form-check">
+                  <input class="form-check-input" type="checkbox" name="Manager Verify Accuracy" id="ManagerVerifyAccuracy">
+                  <label class="form-check-label" for="ManagerVerifyAccuracy">
+                    I verify the accuracy of the information above
+                  </label>
+                </div>
+                <div class="mb-3 form-check">
+                  <input class="form-check-input" type="checkbox" name="Manager Requested Access" id="ManagerRequestedAccess" checked>
+                  <label class="form-check-label" for="ManagerRequestedAccess">
+                    I have requested access to Pyxis-ES using IT Service Desk's online "Pyxis-ES Access" form
+                  </label>
+                </div>
+                <div class="mb-3 form-check">
+                  <input class="form-check-input" type="checkbox" name="Manager Verified Login" id="ManagerVerifiedLogin">
+                  <label class="form-check-label" for="ManagerVerifiedLogin">
+                    I have verified the user HAS successfully logged in to Pyxis ES and has established Bio-ID
+                  </label>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Manager Signature</label>
+                  <canvas id="ManagerSignatureCanvas" width="400" height="200" style="border:1px solid #000;"></canvas>
+                  <input type="hidden" name="Manager Signature" id="ManagerSignatureData">
+                  <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="clearSignature('ManagerSignature')">Clear</button>
+                </div>
+              <% } else if (stage === 3) { %>
+                <h4>Director Approval</h4>
+                <div class="mb-3">
+                  <label class="form-label">Decision</label>
+                  <select class="form-control" name="decision" required>
+                    <option value="approved">Approve</option>
+                    <option value="denied">Deny</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Pharmacy Signature</label>
+                  <canvas id="PharmacySignatureCanvas" width="400" height="200" style="border:1px solid #000;"></canvas>
+                  <input type="hidden" name="Pharmacy Signature" id="PharmacySignatureData">
+                  <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="clearSignature('PharmacySignature')">Clear</button>
+                </div>
+              <% } %>
+              
+              <button type="submit" class="btn btn-primary"><%= stage === 2 ? 'Submit Manager Review' : 'Submit Approval' %></button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <footer class="text-center mt-5">
+    <p>DTG Pyxis Access v1.0.0</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Signature pad functionality
+    function initSignaturePad(canvasId) {
+      const canvas = document.getElementById(canvasId + 'Canvas');
+      const ctx = canvas.getContext('2d');
+      let drawing = false;
+
+      canvas.addEventListener('mousedown', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDrawing);
+      canvas.addEventListener('mouseout', stopDrawing);
+
+      canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        startDrawing(e.touches[0]);
+      });
+      canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        draw(e.touches[0]);
+      });
+      canvas.addEventListener('touchend', stopDrawing);
+
+      function startDrawing(e) {
+        drawing = true;
+        ctx.beginPath();
+        ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+      }
+
+      function draw(e) {
+        if (!drawing) return;
+        ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+        ctx.stroke();
+      }
+
+      function stopDrawing() {
+        drawing = false;
+        const dataURL = canvas.toDataURL();
+        document.getElementById(canvasId + 'Data').value = dataURL;
+      }
+    }
+
+    <% if (stage === 2) { %>
+      initSignaturePad('ManagerSignature');
+    <% } else if (stage === 3) { %>
+      initSignaturePad('PharmacySignature');
+    <% } %>
+
+    function clearSignature(canvasId) {
+      const canvas = document.getElementById(canvasId + 'Canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      document.getElementById(canvasId + 'Data').value = '';
+    }
+  </script>
+</body>
+</html>
