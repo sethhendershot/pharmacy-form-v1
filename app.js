@@ -33,20 +33,34 @@ const STATIC_FORM = {
     { label: 'Pyxis Policy/Procedure review date', type: 'date' },
     { label: 'Employee Signature', type: 'signature', required: true },
     { label: 'Manager Verify Accuracy', type: 'checkbox' },
-    { label: 'Manager Requested Access', type: 'checkbox' },
     { label: 'Manager Verified Login', type: 'checkbox' },
     { label: 'Manager Signature', type: 'signature' },
     { label: 'Pharmacy Signature', type: 'signature' }
-  ],
-  entries: []
+  ]
 };
 
-// Helper functions for forms
-const getForms = () => [STATIC_FORM]; // Return array with single form
-const saveForms = (forms) => {
-  // Since static, just update entries
-  STATIC_FORM.entries = forms[0].entries;
-  fs.writeFileSync('forms.json', JSON.stringify(forms, null, 2));
+// Helper functions for entries
+const getEntries = () => {
+  try {
+    return JSON.parse(fs.readFileSync('forms.json', 'utf8')) || [];
+  } catch {
+    return [];
+  }
+};
+const saveEntries = (entries) => {
+  fs.writeFileSync('forms.json', JSON.stringify(entries, null, 2));
+};
+
+// Helper functions for users
+const getUsers = () => {
+  try {
+    return JSON.parse(fs.readFileSync('users.json', 'utf8')) || [];
+  } catch {
+    return [];
+  }
+};
+const saveUsers = (users) => {
+  fs.writeFileSync('users.json', JSON.stringify(users, null, 2));
 };
 
 app.get('/', (req, res) => {
@@ -60,19 +74,22 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
   console.log('Login attempt:', { username, password });
-  console.log('Env:', { APP_USERNAME: process.env.APP_USERNAME, PASSWORD: process.env.PASSWORD });
-  if (username === process.env.APP_USERNAME && password === process.env.PASSWORD) {
+  const users = getUsers();
+  console.log('Users loaded:', users);
+  const user = users.find(u => u.username === username && u.password === password);
+  console.log('Found user:', user);
+  if (user) {
     req.session.loggedin = true;
     req.session.username = username;
-    req.session.role = 'admin';
-    res.redirect('/');
+    req.session.role = user.role;
+    res.redirect('/admin');
   } else {
     res.render('login', { error: 'Invalid username or password' });
   }
 });
 
 app.get('/api/forms', (req, res) => {
-  res.json(getForms());
+  res.json(STATIC_FORM);
 });
 
 app.get('/submit', (req, res) => {
@@ -82,8 +99,7 @@ app.get('/submit', (req, res) => {
 
 app.post('/submit', (req, res) => {
   const data = req.body; // Form data as object
-  const forms = getForms();
-  const form = forms[0]; // Single form
+  const entries = getEntries();
   const newEntry = {
     id: Date.now().toString(),
     data,
@@ -91,8 +107,8 @@ app.post('/submit', (req, res) => {
     status: 'submitted',
     submittedBy: 'employee' // Placeholder
   };
-  form.entries.push(newEntry);
-  saveForms(forms);
+  entries.push(newEntry);
+  saveEntries(entries);
   const nextLink = `http://localhost:3000/stage/2/${newEntry.id}`;
   console.log('Email link for manager:', nextLink); // Placeholder for email
   res.render('success', { nextLink });
@@ -100,8 +116,8 @@ app.post('/submit', (req, res) => {
 
 app.get('/stage/:stage/:id', (req, res) => {
   const { stage, id } = req.params;
-  const forms = getForms();
-  const entry = forms[0].entries.find(e => e.id === id);
+  const entries = getEntries();
+  const entry = entries.find(e => e.id === id);
   if (!entry) return res.status(404).send('Entry not found');
   // Check if stage matches current status
   if ((stage == 2 && entry.status !== 'submitted') || (stage == 3 && entry.status !== 'manager approved')) {
@@ -112,8 +128,8 @@ app.get('/stage/:stage/:id', (req, res) => {
 
 app.post('/stage/:stage/:id', (req, res) => {
   const { stage, id } = req.params;
-  const forms = getForms();
-  const entry = forms[0].entries.find(e => e.id === id);
+  const entries = getEntries();
+  const entry = entries.find(e => e.id === id);
   if (!entry) return res.status(404).send('Entry not found');
   
   if (stage == 2) {
@@ -123,7 +139,7 @@ app.post('/stage/:stage/:id', (req, res) => {
     entry.updatedAt = new Date().toISOString();
     const nextLink = `http://localhost:3000/stage/3/${entry.id}`;
     console.log('Email link for director:', nextLink); // Placeholder
-    saveForms(forms);
+    saveEntries(entries);
     res.render('success', { nextLink });
   } else if (stage == 3) {
     // Director decision
@@ -131,31 +147,81 @@ app.post('/stage/:stage/:id', (req, res) => {
     entry.data = { ...entry.data, ...req.body };
     entry.status = decision === 'approved' ? 'director approved' : 'denied';
     entry.updatedAt = new Date().toISOString();
-    saveForms(forms);
+    saveEntries(entries);
     res.render('success', { nextLink: null }); // No next link
   }
 });
 
 app.get('/admin', (req, res) => {
-  if (!req.session.loggedin || req.session.role !== 'admin') return res.redirect('/');
-  res.render('dashboard');
+  if (!req.session.loggedin || req.session.role !== 'admin') return res.redirect('/login');
+  res.render('dashboard', { username: req.session.username });
 });
 
 app.get('/api/entries', (req, res) => {
   if (!req.session.loggedin || req.session.role !== 'admin') return res.status(403).json({ error: 'Access denied' });
-  const forms = getForms();
-  res.json(forms[0].entries || []);
+  res.json(getEntries());
 });
 
 app.post('/entries/:id/status', (req, res) => {
   if (!req.session.loggedin || req.session.role !== 'admin') return res.status(403).json({ error: 'Access denied' });
   const { status } = req.body;
-  const forms = getForms();
-  const entry = forms[0].entries.find(e => e.id === req.params.id);
+  const entries = getEntries();
+  const entry = entries.find(e => e.id === req.params.id);
   if (!entry) return res.status(404).json({ error: 'Entry not found' });
   entry.status = status;
   entry.updatedAt = new Date().toISOString();
-  saveForms(forms);
+  saveEntries(entries);
+  res.json({ success: true });
+});
+
+app.delete('/entries/:id', (req, res) => {
+  if (!req.session.loggedin || req.session.role !== 'admin') return res.status(403).json({ error: 'Access denied' });
+  const entries = getEntries();
+  const index = entries.findIndex(e => e.id === req.params.id);
+  if (index === -1) return res.status(404).json({ error: 'Entry not found' });
+  entries.splice(index, 1);
+  saveEntries(entries);
+  res.json({ success: true });
+});
+
+app.get('/view/:id', (req, res) => {
+  if (!req.session.loggedin || req.session.role !== 'admin') return res.redirect('/login');
+  const entries = getEntries();
+  const entry = entries.find(e => e.id === req.params.id);
+  if (!entry) return res.status(404).send('Entry not found');
+  res.render('view', { entry });
+});
+
+app.get('/settings', (req, res) => {
+  if (!req.session.loggedin || req.session.role !== 'admin') return res.redirect('/login');
+  const users = getUsers();
+  res.render('settings', { users });
+});
+
+app.post('/settings/users', (req, res) => {
+  if (!req.session.loggedin || req.session.role !== 'admin') return res.redirect('/login');
+  const { username, password, role } = req.body;
+  const users = getUsers();
+  
+  // Check if username already exists
+  if (users.find(u => u.username === username)) {
+    return res.render('settings', { users, error: 'Username already exists' });
+  }
+  
+  users.push({ username, password, role });
+  saveUsers(users);
+  res.redirect('/settings');
+});
+
+app.delete('/settings/users/:username', (req, res) => {
+  if (!req.session.loggedin || req.session.role !== 'admin') return res.status(403).json({ error: 'Access denied' });
+  const { username } = req.params;
+  const users = getUsers();
+  const index = users.findIndex(u => u.username === username);
+  if (index === -1) return res.status(404).json({ error: 'User not found' });
+  if (username === 'admin') return res.status(403).json({ error: 'Cannot delete admin user' });
+  users.splice(index, 1);
+  saveUsers(users);
   res.json({ success: true });
 });
 

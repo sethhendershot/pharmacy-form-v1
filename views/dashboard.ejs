@@ -14,7 +14,10 @@
         <div class="card">
           <div class="card-header d-flex justify-content-between align-items-center">
             <h1 class="h3 mb-0">Dashboard</h1>
-            <a href="/logout" class="btn btn-danger">Logout</a>
+            <div>
+              <a href="/settings" class="btn btn-outline-primary me-2">Settings</a>
+              <a href="/logout" class="btn btn-danger">Logout</a>
+            </div>
           </div>
           <div class="card-body">
             <p class="mb-3">Hello, <%= username %>!</p>
@@ -26,7 +29,7 @@
                 <tr>
                   <th>ID</th>
                   <th>Employee Name</th>
-                  <th>Department</th>
+                  <th>Primary Unit</th>
                   <th>Status</th>
                   <th>Submitted At</th>
                   <th>Actions</th>
@@ -54,14 +57,24 @@
         },
         columns: [
           { data: 'id' },
-          { data: 'data.Employee Name' },
-          { data: 'data.Department' },
-          { data: 'status' },
-          { data: 'submittedAt' },
           {
             data: null,
             render: function(data, type, row) {
-              let actions = '<button class="btn btn-sm btn-info view-btn" data-id="' + row.id + '">View</button>';
+              return (row.data['First Name'] || '') + ' ' + (row.data['Last Name'] || '');
+            }
+          },
+          { data: 'data.Primary Unit to be assigned' },
+          { data: 'status' },
+          {
+            data: 'submittedAt',
+            render: function(data, type, row) {
+              return new Date(data).toLocaleString();
+            }
+          },
+          {
+            data: null,
+            render: function(data, type, row) {
+              let actions = '<a href="/view/' + row.id + '" class="btn btn-sm btn-info">View</a>';
               if (row.status === 'submitted') {
                 actions += ' <button class="btn btn-sm btn-warning approve-btn" data-id="' + row.id + '" data-status="manager approved">Manager Approve</button>';
               } else if (row.status === 'manager approved') {
@@ -69,6 +82,7 @@
               } else if (row.status === 'director approved') {
                 actions += ' <button class="btn btn-sm btn-secondary approve-btn" data-id="' + row.id + '" data-status="archived">Archive</button>';
               }
+              actions += ' <button class="btn btn-sm btn-danger delete-btn" data-id="' + row.id + '">Delete</button>';
               return actions;
             }
           }
@@ -88,11 +102,27 @@
         });
       });
 
-      // Handle view button (placeholder)
-      $(document).on('click', '.view-btn', function() {
+      // Handle delete buttons
+      $(document).on('click', '.delete-btn', function() {
         const id = $(this).data('id');
-        alert('View entry ' + id); // Placeholder
+        if (confirm('Are you sure you want to delete this entry? This action cannot be undone.')) {
+          $.ajax({
+            url: '/entries/' + id,
+            type: 'DELETE',
+            success: function(response) {
+              if (response.success) {
+                $('#entriesTable').DataTable().ajax.reload();
+              } else {
+                alert('Error deleting entry');
+              }
+            },
+            error: function() {
+              alert('Error deleting entry');
+            }
+          });
+        }
       });
+
     });
   </script>
   
