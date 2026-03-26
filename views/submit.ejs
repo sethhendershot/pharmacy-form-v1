@@ -45,22 +45,11 @@
                         <% }); %>
                       </select>
                     <% } else { %>
-                      <input type="<%= field.type || 'text' %>" class="form-control" id="<%= field.label.replace(/\s/g, '') %>" name="<%= field.label %>" <%= field.required ? 'required' : '' %>>
+                      <input type="<%= field.type || 'text' %>" class="form-control" id="<%= field.label.replace(/\s/g, '') %>" name="<%= field.label %>" placeholder="<%= field.placeholder || '' %>" <%= field.required ? 'required' : '' %>>
                     <% } %>
                   </div>
                 <% } %>
               <% }); %>
-              
-              <div class="mb-3">
-                <h5>PYXIS ES USER SECURITY AGREEMENT</h5>
-                <p>The undersigned individual understands the following:</p>
-                <ol>
-                  <li>The ID assigned in combination with the password selected is the individual's electronic signature. It will be used to track all transactions on the Pyxis MedStation and must not be shared with anyone.</li>
-                  <li>By signing this form, the individual agrees to abide by the policy and procedures for Pyxis Med Station system now in place and comply with those as published at a future date, and have read a current copy of the Policy and Procedure.</li>
-                  <li>The undersigned agrees to use BioID whenever possible.</li>
-                  <li>At the end of every shift the undersigned individual will check for discrepancies and resolve them immediately before leaving per policy, otherwise the undersigned is legally responsible for all transactions listed under his/her name.</li>
-                </ol>
-              </div>
               
               <button type="submit" class="btn btn-primary">Submit Request</button>
               <a href="/" class="btn btn-secondary">Cancel</a>
@@ -115,9 +104,11 @@
     }
 
     // Initialize signature pads
-    initSignaturePad('EmployeeSignature');
-    initSignaturePad('ManagerSignature');
-    initSignaturePad('PharmacySignature');
+    <% form.fields.forEach(field => { %>
+      <% if (field.type === 'signature') { %>
+        initSignaturePad('<%= field.label.replace(/\s/g, '') %>');
+      <% } %>
+    <% }); %>
 
     function clearSignature(canvasId) {
       const canvas = document.getElementById(canvasId + 'Canvas');
