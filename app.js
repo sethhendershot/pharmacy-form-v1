@@ -93,7 +93,7 @@ app.post('/submit', (req, res) => {
   };
   entries.push(newEntry);
   saveEntries(entries);
-  res.redirect(`/stage/2/${newEntry.id}`);
+  res.render('overview', { entry: newEntry, nextLink: `/stage/2/${newEntry.id}` });
 });
 
 app.get('/stage/:stage/:id', (req, res) => {
@@ -105,11 +105,19 @@ app.get('/stage/:stage/:id', (req, res) => {
   if (stage == 2 && entry.status !== 'stage1 completed') {
     return res.status(403).send('Invalid stage for this entry');
   }
-  if (stage == 3 && entry.status !== 'completed') {
+  if (stage == 3 && entry.status !== 'Employee') {
     return res.status(403).send('Invalid stage for this entry');
   }
-  if (stage == 2) {
-    res.render('stage2', { stage: parseInt(stage), entry });
+  if (stage == 4 && entry.status !== 'Director') {
+    return res.status(403).send('Invalid stage for this entry');
+  }
+  if (stage == 5 && entry.status !== 'DTG') {
+    return res.status(403).send('Invalid stage for this entry');
+  }
+  if (stage == 4) {
+    res.render('stage4', { stage: parseInt(stage), entry });
+  } else if (stage == 5) {
+    res.render('stage5', { stage: parseInt(stage), entry });
   } else {
     res.render('stage', { stage: parseInt(stage), entry });
   }
@@ -125,19 +133,38 @@ app.post('/stage/:stage/:id', (req, res) => {
     // Employee completion
     entry.data = { ...entry.data, ...req.body };
     entry.stage = 2;
-    entry.status = 'completed';
+    entry.status = 'Employee';
     entry.updatedAt = new Date().toISOString();
     const nextLink = `http://localhost:3000/stage/3/${entry.id}`;
     console.log('Email link for pharmacy director:', nextLink); // Placeholder
     saveEntries(entries);
     res.render('success', { nextLink });
+  } else if (stage == 1) {
+    // Stage 1 submission
+    entry.data = { ...entry.data, ...req.body };
+    entry.status = 'stage1 completed';
+    entry.updatedAt = new Date().toISOString();
+    saveEntries(entries);
+    res.render('overview', { entry, nextLink: `/stage/2/${entry.id}` });
   } else if (stage == 3) {
     // Pharmacy Director approval
     entry.data = { ...entry.data, ...req.body };
-    entry.status = 'pharmacy director approved';
+    entry.status = 'Director';
     entry.updatedAt = new Date().toISOString();
     saveEntries(entries);
-    res.render('success', { nextLink: null }); // No next link
+    res.render('success', { nextLink: `/stage/4/${entry.id}` });
+  } else if (stage == 4) {
+    // DTG addition
+    entry.status = 'DTG';
+    entry.updatedAt = new Date().toISOString();
+    saveEntries(entries);
+    res.render('success', { nextLink: `/stage/5/${entry.id}` });
+  } else if (stage == 5) {
+    // Completion
+    entry.status = 'Completed';
+    entry.updatedAt = new Date().toISOString();
+    saveEntries(entries);
+    res.render('success', { nextLink: null });
   }
 });
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= stage === 2 ? 'Manager Review' : stage === 3 ? 'Pharmacy Director Approval' : 'Approval' %></title>
+  <title><%= stage === 2 ? 'Employee Review' : stage === 3 ? 'Pharmacy Director Approval' : 'Approval' %></title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
@@ -12,7 +12,7 @@
       <div class="col-md-10">
         <div class="card">
           <div class="card-header">
-            <h1 class="h3 mb-0"><%= stage === 2 ? 'Manager Review' : stage === 3 ? 'Pharmacy Director Approval' : 'Approval' %></h1>
+            <h1 class="h3 mb-0"><%= stage === 2 ? 'Employee Review' : stage === 3 ? 'Pharmacy Director Approval' : 'Approval' %></h1>
           </div>
           <div class="card-body">
             <h4>Submitted Data</h4>
@@ -35,24 +35,26 @@
             
             <form action="/stage/<%= stage %>/<%= entry.id %>" method="POST">
               <% if (stage === 2) { %>
-                <h4>Manager Verification</h4>
+                <h4>Employee Verification</h4>
                 <div class="mb-3 form-check">
-                  <input class="form-check-input" type="checkbox" name="Manager Verify Accuracy" id="ManagerVerifyAccuracy">
-                  <label class="form-check-label" for="ManagerVerifyAccuracy">
+                  <input class="form-check-input" type="checkbox" name="Employee Verify Accuracy" id="EmployeeVerifyAccuracy">
+                  <label class="form-check-label" for="EmployeeVerifyAccuracy">
                     I verify the accuracy of the information above
                   </label>
                 </div>
+                <!--
                 <div class="mb-3 form-check">
-                  <input class="form-check-input" type="checkbox" name="Manager Verified Login" id="ManagerVerifiedLogin">
-                  <label class="form-check-label" for="ManagerVerifiedLogin">
+                  <input class="form-check-input" type="checkbox" name="Employee Verified Login" id="EmployeeVerifiedLogin">
+                  <label class="form-check-label" for="EmployeeVerifiedLogin">
                     I have verified the user HAS successfully logged in to Pyxis ES and has established Bio-ID
                   </label>
                 </div>
+                -->
                 <div class="mb-3">
-                  <label class="form-label">Manager Signature</label>
-                  <canvas id="ManagerSignatureCanvas" width="400" height="200" style="border:1px solid #000;"></canvas>
-                  <input type="hidden" name="Manager Signature" id="ManagerSignatureData">
-                  <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="clearSignature('ManagerSignature')">Clear</button>
+                  <label class="form-label">Employee Signature</label>
+                  <canvas id="EmployeeSignatureCanvas" width="400" height="200" style="border:1px solid #000;"></canvas>
+                  <input type="hidden" name="Employee Signature" id="EmployeeSignatureData">
+                  <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="clearSignature('EmployeeSignature')">Clear</button>
                 </div>
               <% } else if (stage === 3) { %>
                 <h4>Pharmacy Director Approval</h4>
@@ -68,7 +70,7 @@
                 </div>
               <% } %>
               
-              <button type="submit" class="btn btn-primary"><%= stage === 2 ? 'Submit Manager Review' : stage === 3 ? 'Submit Pharmacy Director Approval' : 'Submit Approval' %></button>
+              <button type="submit" class="btn btn-primary"><%= stage === 2 ? 'Submit Employee Review' : stage === 3 ? 'Submit Pharmacy Director Approval' : 'Submit Approval' %></button>
             </form>
           </div>
         </div>
@@ -123,7 +125,7 @@
     }
 
     <% if (stage === 2) { %>
-      initSignaturePad('ManagerSignature');
+      initSignaturePad('EmployeeSignature');
     <% } else if (stage === 3) { %>
       initSignaturePad('PharmacyDirectorSignature');
     <% } %>

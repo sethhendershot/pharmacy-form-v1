@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submission Overview</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h1 class="h3 mb-0">Submission Overview</h1>
+            <a href="<%= nextLink %>" class="btn btn-outline-primary btn-sm">Proceed to Stage 2</a>
+          </div>
+          <div class="card-body">
+            <h5>Submitted Data:</h5>
+            <ul class="list-group list-group-flush">
+              <% Object.keys(entry.data).forEach(key => { %>
+                <li class="list-group-item">
+                  <strong><%= key %>:</strong>
+                  <% if (key === 'Signature') { %>
+                    <br><img src="data:image/png;base64,<%= entry.data[key] %>" alt="Signature" class="img-fluid mt-2" style="max-width: 300px;">
+                  <% } else { %>
+                    <%= entry.data[key] %>
+                  <% } %>
+                </li>
+              <% }); %>
+            </ul>
+            <hr>
+            <p>Your Stage 1 submission has been saved. Click below to proceed to Stage 2.</p>
+            <a href="<%= nextLink %>" class="btn btn-primary">Proceed to Stage 2</a>
+            <a href="/" class="btn btn-secondary">Back to Home</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <footer class="text-center mt-5">
+    <p>DTG Pyxis Access v1.0.0</p>
+  </footer>
+</body>
+</html>
