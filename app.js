@@ -14,6 +14,21 @@ app.use(session({
 
 app.set('view engine', 'ejs');
 
+// Define checkbox fields that should be converted to boolean
+const checkboxFields = [
+  'I verify the accuracy of the information above',
+  'Employee Verify Accuracy',
+  'Manager Verify Accuracy',
+  'Manager Verified Login'
+];
+
+// Function to convert checkbox values from 'on' to true, absence to false
+function processCheckboxes(data) {
+  checkboxFields.forEach(field => {
+    data[field] = data[field] === 'on';
+  });
+}
+
 // Define the single static form
 const STATIC_FORM = {
   id: 'pyxis-request',
@@ -83,6 +98,7 @@ app.get('/submit', (req, res) => {
 
 app.post('/submit', (req, res) => {
   const data = req.body; // Form data as object
+  processCheckboxes(data);
   const entries = getEntries();
   const newEntry = {
     id: Date.now().toString(),
@@ -131,7 +147,9 @@ app.post('/stage/:stage/:id', (req, res) => {
   
   if (stage == 2) {
     // Employee completion
-    entry.data = { ...entry.data, ...req.body };
+    const newData = req.body;
+    processCheckboxes(newData);
+    entry.data = { ...entry.data, ...newData };
     entry.stage = 2;
     entry.status = 'Employee';
     entry.updatedAt = new Date().toISOString();
@@ -141,14 +159,18 @@ app.post('/stage/:stage/:id', (req, res) => {
     res.render('success', { nextLink });
   } else if (stage == 1) {
     // Stage 1 submission
-    entry.data = { ...entry.data, ...req.body };
+    const newData = req.body;
+    processCheckboxes(newData);
+    entry.data = { ...entry.data, ...newData };
     entry.status = 'stage1 completed';
     entry.updatedAt = new Date().toISOString();
     saveEntries(entries);
     res.render('overview', { entry, nextLink: `/stage/2/${entry.id}` });
   } else if (stage == 3) {
     // Pharmacy Director approval
-    entry.data = { ...entry.data, ...req.body };
+    const newData = req.body;
+    processCheckboxes(newData);
+    entry.data = { ...entry.data, ...newData };
     entry.status = 'Director';
     entry.updatedAt = new Date().toISOString();
     saveEntries(entries);
