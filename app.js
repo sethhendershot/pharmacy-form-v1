@@ -45,6 +45,7 @@ const STATIC_FORM = {
     { label: 'Middle Initial', type: 'text', defaultValue: 'A' },
     { label: 'Last Name', type: 'text', required: true, defaultValue: 'Doe' },
     { label: 'Trinity Employee ID Number', type: 'text', required: true, defaultValue: '123456' },
+    { label: 'Email Address', type: 'email', required: true, defaultValue: 'john.doe@trinityhealth.org' },
     { label: 'Professional Credentials', type: 'text', placeholder: 'RN, LPN, MD, RPh, CPhT, etc', required: true, defaultValue: 'RN' },
     { label: 'User Type', type: 'select', options: ['Trinity Employee', 'Contract Staff of Locum Anesthesia Provider'], required: true, defaultValue: 'Trinity Employee' },
     { label: 'Job Title/ User Role', type: 'select', options: [
@@ -209,10 +210,15 @@ app.post('/stage/:stage/:id', (req, res) => {
     entry.status = 'Completed';
     entry.updatedAt = new Date().toISOString();
     
-    // Send completion email
+    // Send completion email to the employee
     const employeeName = `${entry.data['First Name']} ${entry.data['Last Name']}`;
+    const employeeEmail = entry.data['Email Address'];
     const emailTemplate = emailService.getCompletionEmail(employeeName);
-    emailService.sendEmail(process.env.DIRECTOR_EMAIL, emailTemplate.subject, emailTemplate.html);
+    if (employeeEmail) {
+      emailService.sendEmail(employeeEmail, emailTemplate.subject, emailTemplate.html);
+    } else {
+      console.log('No email address found for completion notification');
+    }
     
     saveEntries(entries);
     res.render('success', { nextLink: null });
