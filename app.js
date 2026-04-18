@@ -19,9 +19,10 @@ app.use('/images', express.static('images'));
 // Define checkbox fields that should be converted to boolean
 const checkboxFields = [
   'I verify the accuracy of the information above',
-  'Employee Verify Accuracy',
   'Manager Verify Accuracy',
-  'Manager Verified Login'
+  'Manager Verified Login',
+  'Employee Agreement',
+  'The user has been added to the Security Group'
 ];
 
 // Function to convert checkbox values from 'on' to true, absence to false
@@ -111,7 +112,7 @@ app.post('/submit', (req, res) => {
   };
   entries.push(newEntry);
   saveEntries(entries);
-  res.render('overview', { entry: newEntry, nextLink: `/stage/2/${newEntry.id}` });
+  res.render('overview', { entry: newEntry, nextLink: `${process.env.BASE_URL}/stage/2/${newEntry.id}` });
 });
 
 app.get('/stage/:stage/:id', (req, res) => {
@@ -133,9 +134,9 @@ app.get('/stage/:stage/:id', (req, res) => {
     return res.status(403).send('Invalid stage for this entry');
   }
   if (stage == 4) {
-    res.render('stage4', { stage: parseInt(stage), entry });
+    res.render('stage', { stage: parseInt(stage), entry });
   } else if (stage == 5) {
-    res.render('stage5', { stage: parseInt(stage), entry });
+    res.render('stage', { stage: parseInt(stage), entry });
   } else {
     res.render('stage', { stage: parseInt(stage), entry });
   }
@@ -155,7 +156,7 @@ app.post('/stage/:stage/:id', (req, res) => {
     entry.stage = 2;
     entry.status = 'Employee';
     entry.updatedAt = new Date().toISOString();
-    const nextLink = `http://localhost:3000/stage/3/${entry.id}`;
+    const nextLink = `${process.env.BASE_URL}/stage/3/${entry.id}`;
     console.log('Email link for pharmacy director:', nextLink); // Placeholder
     saveEntries(entries);
     res.render('success', { nextLink });
@@ -176,15 +177,21 @@ app.post('/stage/:stage/:id', (req, res) => {
     entry.status = 'Director';
     entry.updatedAt = new Date().toISOString();
     saveEntries(entries);
-    res.render('success', { nextLink: `/stage/4/${entry.id}` });
+    res.render('success', { nextLink: `${process.env.BASE_URL}/stage/4/${entry.id}` });
   } else if (stage == 4) {
     // DTG addition
+    const newData = req.body;
+    processCheckboxes(newData);
+    entry.data = { ...entry.data, ...newData };
     entry.status = 'DTG';
     entry.updatedAt = new Date().toISOString();
     saveEntries(entries);
-    res.render('success', { nextLink: `/stage/5/${entry.id}` });
+    res.render('success', { nextLink: `${process.env.BASE_URL}/stage/5/${entry.id}` });
   } else if (stage == 5) {
     // Completion
+    const newData = req.body;
+    processCheckboxes(newData);
+    entry.data = { ...entry.data, ...newData };
     entry.status = 'Completed';
     entry.updatedAt = new Date().toISOString();
     saveEntries(entries);
