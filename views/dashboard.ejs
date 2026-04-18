@@ -16,6 +16,7 @@
           <div class="card-header d-flex justify-content-between align-items-center">
             <h1 class="h3 mb-0">Dashboard</h1>
             <div>
+              <button id="testEmailBtn" class="btn btn-info me-2">Test Email</button>
               <a href="/logout" class="btn btn-danger">Logout</a>
             </div>
           </div>
@@ -145,6 +146,28 @@
         }).fail(function() {
           $('#resendEmailModal').modal('hide');
           alert('Error resending email');
+        });
+      });
+
+      // Handle test email button
+      $('#testEmailBtn').click(function() {
+        $(this).prop('disabled', true).text('Testing...');
+
+        $.get('/test-email', function(response) {
+          $('#testEmailBtn').prop('disabled', false).text('Test Email');
+
+          if (response.success) {
+            let message = 'Email service is working!\n\nConnected as: ' + response.user + '\nEmail: ' + response.email;
+            if (response.warning) {
+              message += '\n\n⚠️ Warning: ' + response.warning;
+            }
+            alert(message);
+          } else {
+            alert('Email service test failed:\n\n' + (response.error || response.message || 'Unknown error'));
+          }
+        }).fail(function(xhr, status, error) {
+          $('#testEmailBtn').prop('disabled', false).text('Test Email');
+          alert('Error testing email service: ' + error);
         });
       });
 

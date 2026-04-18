@@ -305,6 +305,15 @@ app.get('/view/:id', (req, res) => {
   res.render('view', { entry });
 });
 
+app.get('/test-email', async (req, res) => {
+  try {
+    const testResult = await emailService.testEmailConfiguration();
+    res.json(testResult);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 app.get('/logout', (req, res) => {
   req.session.destroy();
   res.redirect('/login');
