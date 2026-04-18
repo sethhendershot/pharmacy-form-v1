@@ -4,6 +4,7 @@ const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
+const emailService = require('./services/emailService');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
@@ -157,7 +158,13 @@ app.post('/stage/:stage/:id', (req, res) => {
     entry.status = 'Employee';
     entry.updatedAt = new Date().toISOString();
     const nextLink = `${process.env.BASE_URL}/stage/3/${entry.id}`;
-    console.log('Email link for pharmacy director:', nextLink); // Placeholder
+    console.log('Email link for pharmacy director:', nextLink); // Keep for logging
+    
+    // Send email to director
+    const employeeName = `${entry.data['First Name']} ${entry.data['Last Name']}`;
+    const emailTemplate = emailService.getDirectorApprovalEmail(employeeName, nextLink);
+    emailService.sendEmail(process.env.DIRECTOR_EMAIL, emailTemplate.subject, emailTemplate.html);
+    
     saveEntries(entries);
     res.render('success', { nextLink });
   } else if (stage == 1) {
@@ -176,8 +183,15 @@ app.post('/stage/:stage/:id', (req, res) => {
     entry.data = { ...entry.data, ...newData };
     entry.status = 'Director';
     entry.updatedAt = new Date().toISOString();
+    
+    // Send email to DTG
+    const employeeName = `${entry.data['First Name']} ${entry.data['Last Name']}`;
+    const nextLink = `${process.env.BASE_URL}/stage/4/${entry.id}`;
+    const emailTemplate = emailService.getDTGNotificationEmail(employeeName, nextLink);
+    emailService.sendEmail(process.env.DTG_EMAIL, emailTemplate.subject, emailTemplate.html);
+    
     saveEntries(entries);
-    res.render('success', { nextLink: `${process.env.BASE_URL}/stage/4/${entry.id}` });
+    res.render('success', { nextLink: nextLink });
   } else if (stage == 4) {
     // DTG addition
     const newData = req.body;
@@ -194,6 +208,12 @@ app.post('/stage/:stage/:id', (req, res) => {
     entry.data = { ...entry.data, ...newData };
     entry.status = 'Completed';
     entry.updatedAt = new Date().toISOString();
+    
+    // Send completion email
+    const employeeName = `${entry.data['First Name']} ${entry.data['Last Name']}`;
+    const emailTemplate = emailService.getCompletionEmail(employeeName);
+    emailService.sendEmail(process.env.DIRECTOR_EMAIL, emailTemplate.subject, emailTemplate.html);
+    
     saveEntries(entries);
     res.render('success', { nextLink: null });
   }
