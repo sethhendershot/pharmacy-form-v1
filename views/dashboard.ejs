@@ -81,6 +81,7 @@
               } else if (row.status === 'director approved') {
                 actions += ' <button class="btn btn-sm btn-secondary approve-btn" data-id="' + row.id + '" data-status="archived">Archive</button>';
               }
+              actions += ' <button class="btn btn-sm btn-primary resend-email-btn" data-id="' + row.id + '">Resend Email</button>';
               actions += ' <button class="btn btn-sm btn-danger delete-btn" data-id="' + row.id + '">Delete</button>';
               return actions;
             }
@@ -120,6 +121,18 @@
             }
           });
         }
+      // Handle resend email buttons
+      $(document).on('click', '.resend-email-btn', function() {
+        const id = $(this).data('id');
+        $.post('/entries/' + id + '/resend-email', function(response) {
+          if (response.success) {
+            alert('Email resent successfully');
+          } else {
+            alert('Error resending email: ' + (response.error || 'Unknown error'));
+          }
+        }).fail(function() {
+          alert('Error resending email');
+        });
       });
 
     });

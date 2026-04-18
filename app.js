@@ -247,6 +247,45 @@ app.post('/entries/:id/status', (req, res) => {
   res.json({ success: true });
 });
 
+app.post('/entries/:id/resend-email', (req, res) => {
+  if (!req.session.loggedin) return res.status(403).json({ error: 'Access denied' });
+  const entries = getEntries();
+  const entry = entries.find(e => e.id === req.params.id);
+  if (!entry) return res.status(404).json({ error: 'Entry not found' });
+
+  const employeeName = `${entry.data['First Name']} ${entry.data['Last Name']}`;
+
+  let emailResult = { success: false, error: 'No email to send for this status' };
+
+  // Determine which email to send based on status
+  if (entry.status === 'Employee') {
+    // Resend director approval email
+    const approvalLink = `${process.env.BASE_URL}/stage/3/${entry.id}`;
+    const emailTemplate = emailService.getDirectorApprovalEmail(employeeName, approvalLink);
+    emailResult = emailService.sendEmail(process.env.DIRECTOR_EMAIL, emailTemplate.subject, emailTemplate.html);
+  } else if (entry.status === 'Director') {
+    // Resend DTG notification email
+    const completionLink = `${process.env.BASE_URL}/stage/4/${entry.id}`;
+    const emailTemplate = emailService.getDTGNotificationEmail(employeeName, completionLink);
+    emailResult = emailService.sendEmail(process.env.DTG_EMAIL, emailTemplate.subject, emailTemplate.html);
+  } else if (entry.status === 'Completed') {
+    // Resend completion email to employee
+    const employeeEmail = entry.data['Email Address'];
+    if (employeeEmail) {
+      const emailTemplate = emailService.getCompletionEmail(employeeName);
+      emailResult = emailService.sendEmail(employeeEmail, emailTemplate.subject, emailTemplate.html);
+    } else {
+      emailResult = { success: false, error: 'No email address found for employee' };
+    }
+  }
+
+  if (emailResult.success) {
+    res.json({ success: true });
+  } else {
+    res.json({ success: false, error: emailResult.error || emailResult.message });
+  }
+});
+
 app.delete('/entries/:id', (req, res) => {
   if (!req.session.loggedin) return res.status(403).json({ error: 'Access denied' });
   const entries = getEntries();
