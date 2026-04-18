@@ -126,19 +126,59 @@
       // Handle resend email buttons
       $(document).on('click', '.resend-email-btn', function() {
         const id = $(this).data('id');
-        $.post('/entries/' + id + '/resend-email', function(response) {
+        $('#resendEmailModal').data('entry-id', id);
+        $('#resendEmailModal').modal('show');
+      });
+
+      // Handle specific email type buttons
+      $(document).on('click', '.resend-specific-email-btn', function() {
+        const emailType = $(this).data('email-type');
+        const entryId = $('#resendEmailModal').data('entry-id');
+        
+        $.post('/entries/' + entryId + '/resend-email', { emailType: emailType }, function(response) {
+          $('#resendEmailModal').modal('hide');
           if (response.success) {
             alert('Email resent successfully');
           } else {
             alert('Error resending email: ' + (response.error || 'Unknown error'));
           }
         }).fail(function() {
+          $('#resendEmailModal').modal('hide');
           alert('Error resending email');
         });
       });
 
     });
   </script>
+  
+  <!-- Resend Email Modal -->
+  <div class="modal fade" id="resendEmailModal" tabindex="-1" aria-labelledby="resendEmailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="resendEmailModalLabel">Resend Email</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Select which email to resend:</p>
+          <div class="d-grid gap-2">
+            <button type="button" class="btn btn-success resend-specific-email-btn" data-email-type="director">
+              <i class="fas fa-user-md me-2"></i>Resend Director Approval Email
+            </button>
+            <button type="button" class="btn btn-info resend-specific-email-btn" data-email-type="dtg">
+              <i class="fas fa-server me-2"></i>Resend DTG Notification Email
+            </button>
+            <button type="button" class="btn btn-primary resend-specific-email-btn" data-email-type="completion">
+              <i class="fas fa-check-circle me-2"></i>Resend Employee Completion Email
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
   
   <footer class="text-center mt-5">
     <p>DTG Pyxis Access v1.0.0</p>

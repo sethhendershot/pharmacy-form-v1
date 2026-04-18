@@ -253,23 +253,24 @@ app.post('/entries/:id/resend-email', (req, res) => {
   const entry = entries.find(e => e.id === req.params.id);
   if (!entry) return res.status(404).json({ error: 'Entry not found' });
 
+  const { emailType } = req.body;
   const employeeName = `${entry.data['First Name']} ${entry.data['Last Name']}`;
 
-  let emailResult = { success: false, error: 'No email to send for this status' };
+  let emailResult = { success: false, error: 'Invalid email type' };
 
-  // Determine which email to send based on status
-  if (entry.status === 'Employee') {
-    // Resend director approval email
+  // Send email based on specified type
+  if (emailType === 'director') {
+    // Send director approval email
     const approvalLink = `${process.env.BASE_URL}/stage/3/${entry.id}`;
     const emailTemplate = emailService.getDirectorApprovalEmail(employeeName, approvalLink);
     emailResult = emailService.sendEmail(process.env.DIRECTOR_EMAIL, emailTemplate.subject, emailTemplate.html);
-  } else if (entry.status === 'Director') {
-    // Resend DTG notification email
+  } else if (emailType === 'dtg') {
+    // Send DTG notification email
     const completionLink = `${process.env.BASE_URL}/stage/4/${entry.id}`;
     const emailTemplate = emailService.getDTGNotificationEmail(employeeName, completionLink);
     emailResult = emailService.sendEmail(process.env.DTG_EMAIL, emailTemplate.subject, emailTemplate.html);
-  } else if (entry.status === 'Completed') {
-    // Resend completion email to employee
+  } else if (emailType === 'completion') {
+    // Send completion email to employee
     const employeeEmail = entry.data['Email Address'];
     if (employeeEmail) {
       const emailTemplate = emailService.getCompletionEmail(employeeName);
