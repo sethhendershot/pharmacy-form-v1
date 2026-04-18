@@ -14,6 +14,8 @@ app.use(session({
 
 app.set('view engine', 'ejs');
 
+app.use('/images', express.static('images'));
+
 // Define checkbox fields that should be converted to boolean
 const checkboxFields = [
   'I verify the accuracy of the information above',
@@ -35,23 +37,23 @@ const STATIC_FORM = {
   name: 'Pyxis Medication Machine Access Request - Stage 1',
   description: 'Stage 1: Manager provides employee information',
   fields: [
-    { label: 'Date', type: 'date', required: true },
-    { label: 'Primary Unit to be assigned', type: 'select', options: ['unit1', 'unit2', 'unit3'], required: true },
-    { label: 'First Name', type: 'text', required: true },
-    { label: 'Middle Initial', type: 'text' },
-    { label: 'Last Name', type: 'text', required: true },
-    { label: 'Trinity Employee ID Number', type: 'text', required: true },
-    { label: 'Professional Credentials', type: 'text', placeholder: 'RN, LPN, MD, RPh, CPhT, etc', required: true },
-    { label: 'User Type', type: 'select', options: ['Trinity Employee', 'Contract Staff of Locum Anesthesia Provider'], required: true },
+    { label: 'Date', type: 'date', required: true, defaultValue: new Date().toISOString().split('T')[0] },
+    { label: 'Primary Unit to be assigned', type: 'select', options: ['unit1', 'unit2', 'unit3'], required: true, defaultValue: 'unit1' },
+    { label: 'First Name', type: 'text', required: true, defaultValue: 'John' },
+    { label: 'Middle Initial', type: 'text', defaultValue: 'A' },
+    { label: 'Last Name', type: 'text', required: true, defaultValue: 'Doe' },
+    { label: 'Trinity Employee ID Number', type: 'text', required: true, defaultValue: '123456' },
+    { label: 'Professional Credentials', type: 'text', placeholder: 'RN, LPN, MD, RPh, CPhT, etc', required: true, defaultValue: 'RN' },
+    { label: 'User Type', type: 'select', options: ['Trinity Employee', 'Contract Staff of Locum Anesthesia Provider'], required: true, defaultValue: 'Trinity Employee' },
     { label: 'Job Title/ User Role', type: 'select', options: [
       'AEMT', 'Anesthesiologist', 'CRNA', 'CRNA Student', 'EMT', 'LIP/Provider', 'LPN', 
       'Nurse Manager/House Supervisor', 'Nursing Instructor', 'Ophthalmic Tech', 'Paramedic', 
       'Perfusionist', 'Pharmacist', 'Pharmacy Tech', 'Pharmacy Tech in Training', 
       'Radiology/Ultrasound Tech', 'Respiratory Therapist', 'Respiratory Therapist - Sleep lab only', 
       'RN (charge)', 'RN (staff)', 'Surgical Assistant'
-    ], required: true },
-    { label: 'I verify the accuracy of the information above', type: 'checkbox', required: true },
-    { label: 'Signature', type: 'signature', required: true }
+    ], required: true, defaultValue: 'RN (staff)' },
+    { label: 'I verify the accuracy of the information above', type: 'checkbox', required: true, defaultValue: true },
+    { label: 'Signature', type: 'signature', required: true, defaultValue: 'Test Signature' }
   ]
 };
 

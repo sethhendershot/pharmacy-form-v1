@@ -7,6 +7,9 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
+  <div class="text-center mb-4 p-3">
+    <img src="/images/trinity-health-banner.png" alt="Trinity Health Banner" style="max-width: 350px;">
+  </div>
   <div class="container mt-5">
     <div class="row justify-content-center">
       <div class="col-md-8">
@@ -22,12 +25,12 @@
                   <div class="mb-3">
                     <label class="form-label"><%= field.label %> <%= field.required ? '*' : '' %></label>
                     <canvas id="<%= field.label.replace(/\s/g, '') %>Canvas" width="400" height="200" style="border:1px solid #000;"></canvas>
-                    <input type="hidden" name="<%= field.label %>" id="<%= field.label.replace(/\s/g, '') %>Data">
+                    <input type="hidden" name="<%= field.label %>" id="<%= field.label.replace(/\s/g, '') %>Data" value="<%= field.defaultValue || '' %>">
                     <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="clearSignature('<%= field.label.replace(/\s/g, '') %>')">Clear</button>
                   </div>
                 <% } else if (field.type === 'checkbox') { %>
                   <div class="mb-3 form-check">
-                    <input class="form-check-input" type="checkbox" name="<%= field.label %>" id="<%= field.label.replace(/\s/g, '') %>">
+                    <input class="form-check-input" type="checkbox" name="<%= field.label %>" id="<%= field.label.replace(/\s/g, '') %>" <%= field.defaultValue ? 'checked' : '' %>>
                     <label class="form-check-label" for="<%= field.label.replace(/\s/g, '') %>">
                       <%= field.label %>
                     </label>
@@ -36,16 +39,16 @@
                   <div class="mb-3">
                     <label for="<%= field.label.replace(/\s/g, '') %>" class="form-label"><%= field.label %> <%= field.required ? '*' : '' %></label>
                     <% if (field.type === 'textarea') { %>
-                      <textarea class="form-control" id="<%= field.label.replace(/\s/g, '') %>" name="<%= field.label %>" rows="3" <%= field.required ? 'required' : '' %>></textarea>
+                      <textarea class="form-control" id="<%= field.label.replace(/\s/g, '') %>" name="<%= field.label %>" rows="3" <%= field.required ? 'required' : '' %>><%= field.defaultValue || '' %></textarea>
                     <% } else if (field.type === 'select') { %>
                       <select class="form-control" id="<%= field.label.replace(/\s/g, '') %>" name="<%= field.label %>" <%= field.required ? 'required' : '' %>>
                         <option value="">Select...</option>
                         <% field.options.forEach(opt => { %>
-                          <option value="<%= opt %>"><%= opt %></option>
+                          <option value="<%= opt %>" <%= opt === field.defaultValue ? 'selected' : '' %>><%= opt %></option>
                         <% }); %>
                       </select>
                     <% } else { %>
-                      <input type="<%= field.type || 'text' %>" class="form-control" id="<%= field.label.replace(/\s/g, '') %>" name="<%= field.label %>" placeholder="<%= field.placeholder || '' %>" <%= field.required ? 'required' : '' %>>
+                      <input type="<%= field.type || 'text' %>" class="form-control" id="<%= field.label.replace(/\s/g, '') %>" name="<%= field.label %>" placeholder="<%= field.placeholder || '' %>" value="<%= field.defaultValue || '' %>" <%= field.required ? 'required' : '' %>>
                     <% } %>
                   </div>
                 <% } %>
@@ -67,12 +70,19 @@
       const ctx = canvas.getContext('2d');
       let drawing = false;
 
-      canvas.addEventListener('mousedown', startDrawing);
+      // Set drawing properties
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      canvas.addEventListener('mousedown', (e) => startDrawing(e));
       canvas.addEventListener('mousemove', draw);
-      canvas.addEventListener('mouseup', stopDrawing);
+
+      // Global listeners for mouseup and touchend to handle releases outside canvas
+      document.addEventListener('mouseup', stopDrawing);
       canvas.addEventListener('mouseout', stopDrawing);
 
-      // Touch events for mobile
       canvas.addEventListener('touchstart', (e) => {
         e.preventDefault();
         startDrawing(e.touches[0]);
@@ -81,23 +91,32 @@
         e.preventDefault();
         draw(e.touches[0]);
       });
-      canvas.addEventListener('touchend', stopDrawing);
+      // Global touchend
+      document.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        stopDrawing();
+      });
 
       function startDrawing(e) {
         drawing = true;
+        const rect = canvas.getBoundingClientRect();
         ctx.beginPath();
-        ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        ctx.moveTo(x, y);
       }
 
       function draw(e) {
         if (!drawing) return;
-        ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        ctx.lineTo(x, y);
         ctx.stroke();
       }
 
       function stopDrawing() {
         drawing = false;
-        // Save to hidden input
         const dataURL = canvas.toDataURL();
         document.getElementById(canvasId + 'Data').value = dataURL;
       }
