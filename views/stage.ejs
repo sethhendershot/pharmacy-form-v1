@@ -82,6 +82,15 @@
                   <label for="approvalDate" class="form-label">Approval Date</label>
                   <input type="date" class="form-control" id="approvalDate" name="Pharmacy Director Approval Date" required>
                 </div>
+                <div class="mb-3">
+                  <label for="emailRecipients" class="form-label">Send Notification Emails To:</label>
+                  <select multiple class="form-select" id="emailRecipients" name="Email Recipients" required>
+                    <option value="rachel" selected>Rachel</option>
+                    <option value="mike">Mike</option>
+                    <option value="charles">Charles</option>
+                  </select>
+                  <div class="form-text">Select who should receive email notifications about this approval.</div>
+                </div>
               <% } else if (stage === 4) { %>
                 <h4>DTG Addition</h4>
                 <p>Add <%= entry.data['First Name'] %> <%= entry.data['Middle Initial'] || '' %> <%= entry.data['Last Name'] %> to the Pyxis ES Group</p>

@@ -197,11 +197,35 @@ app.post('/stage/:stage/:id', (req, res) => {
     entry.status = 'stage 3 completed';
     entry.updatedAt = new Date().toISOString();
     
-    // Send email to DTG
+    // Send email to selected recipients
     const employeeName = `${entry.data['First Name']} ${entry.data['Last Name']}`;
     const nextLink = `${process.env.BASE_URL}/stage/4/${entry.id}`;
     const emailTemplate = emailService.getDTGNotificationEmail(employeeName, nextLink);
-    emailService.sendEmail(process.env.DTG_EMAIL, emailTemplate.subject, emailTemplate.html);
+    
+    // Get selected recipients
+    const selectedRecipients = Array.isArray(newData['Email Recipients']) 
+      ? newData['Email Recipients'] 
+      : [newData['Email Recipients']].filter(Boolean);
+    
+    // Send email to each selected recipient
+    selectedRecipients.forEach(recipient => {
+      let recipientEmail = '';
+      switch(recipient.toLowerCase()) {
+        case 'rachel':
+          recipientEmail = process.env.RACHEL_EMAIL;
+          break;
+        case 'mike':
+          recipientEmail = process.env.MIKE_EMAIL;
+          break;
+        case 'charles':
+          recipientEmail = process.env.CHARLES_EMAIL;
+          break;
+      }
+      
+      if (recipientEmail) {
+        emailService.sendEmail(recipientEmail, emailTemplate.subject, emailTemplate.html);
+      }
+    });
     
     saveEntries(entries);
     res.render('success', { nextLink: nextLink });
