@@ -110,11 +110,23 @@ app.post('/submit', (req, res) => {
     stage: 1,
     data,
     submittedAt: new Date().toISOString(),
-    status: 'stage1 completed',
+    status: 'stage 1 completed',
   };
   entries.push(newEntry);
   saveEntries(entries);
-  res.render('overview', { entry: newEntry, nextLink: `${process.env.BASE_URL}/stage/2/${newEntry.id}` });
+  
+  // Send email to employee for approval
+  const employeeName = `${newEntry.data['First Name']} ${newEntry.data['Last Name']}`;
+  const employeeEmail = newEntry.data['Email Address'];
+  const approvalLink = `${process.env.BASE_URL}/stage/2/${newEntry.id}`;
+  const emailTemplate = emailService.getEmployeeApprovalEmail(employeeName, approvalLink);
+  if (employeeEmail) {
+    emailService.sendEmail(employeeEmail, emailTemplate.subject, emailTemplate.html);
+  } else {
+    console.log('No email address found for employee notification');
+  }
+  
+  res.render('overview', { entry: newEntry, nextLink: approvalLink });
 });
 
 app.get('/stage/:stage/:id', (req, res) => {
@@ -123,16 +135,16 @@ app.get('/stage/:stage/:id', (req, res) => {
   const entry = entries.find(e => e.id === id);
   if (!entry) return res.status(404).send('Entry not found');
   // Check if stage matches current status
-  if (stage == 2 && entry.status !== 'stage1 completed') {
+  if (stage == 2 && entry.status !== 'stage 1 completed') {
     return res.status(403).send('Invalid stage for this entry');
   }
-  if (stage == 3 && entry.status !== 'Employee') {
+  if (stage == 3 && entry.status !== 'stage 2 completed') {
     return res.status(403).send('Invalid stage for this entry');
   }
-  if (stage == 4 && entry.status !== 'Director') {
+  if (stage == 4 && entry.status !== 'stage 3 completed') {
     return res.status(403).send('Invalid stage for this entry');
   }
-  if (stage == 5 && entry.status !== 'DTG') {
+  if (stage == 5 && entry.status !== 'stage 4 completed') {
     return res.status(403).send('Invalid stage for this entry');
   }
   if (stage == 4) {
@@ -156,7 +168,7 @@ app.post('/stage/:stage/:id', (req, res) => {
     processCheckboxes(newData);
     entry.data = { ...entry.data, ...newData };
     entry.stage = 2;
-    entry.status = 'Employee';
+    entry.status = 'stage 2 completed';
     entry.updatedAt = new Date().toISOString();
     const nextLink = `${process.env.BASE_URL}/stage/3/${entry.id}`;
     console.log('Email link for pharmacy director:', nextLink); // Keep for logging
@@ -173,7 +185,7 @@ app.post('/stage/:stage/:id', (req, res) => {
     const newData = req.body;
     processCheckboxes(newData);
     entry.data = { ...entry.data, ...newData };
-    entry.status = 'stage1 completed';
+    entry.status = 'stage 1 completed';
     entry.updatedAt = new Date().toISOString();
     saveEntries(entries);
     res.render('overview', { entry, nextLink: `/stage/2/${entry.id}` });
@@ -182,7 +194,7 @@ app.post('/stage/:stage/:id', (req, res) => {
     const newData = req.body;
     processCheckboxes(newData);
     entry.data = { ...entry.data, ...newData };
-    entry.status = 'Director';
+    entry.status = 'stage 3 completed';
     entry.updatedAt = new Date().toISOString();
     
     // Send email to DTG
@@ -198,7 +210,7 @@ app.post('/stage/:stage/:id', (req, res) => {
     const newData = req.body;
     processCheckboxes(newData);
     entry.data = { ...entry.data, ...newData };
-    entry.status = 'DTG';
+    entry.status = 'stage 4 completed';
     entry.updatedAt = new Date().toISOString();
     saveEntries(entries);
     res.render('success', { nextLink: `${process.env.BASE_URL}/stage/5/${entry.id}` });
@@ -207,7 +219,7 @@ app.post('/stage/:stage/:id', (req, res) => {
     const newData = req.body;
     processCheckboxes(newData);
     entry.data = { ...entry.data, ...newData };
-    entry.status = 'Completed';
+    entry.status = 'stage 5 completed';
     entry.updatedAt = new Date().toISOString();
     
     // Send completion email to the employee

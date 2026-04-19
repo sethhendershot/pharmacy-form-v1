@@ -182,6 +182,23 @@ class EmailService {
   }
 
   // Email templates
+  getEmployeeApprovalEmail(employeeName, approvalLink) {
+    return {
+      subject: `Pyxis Access Request - Your Approval Required for ${employeeName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Pyxis Access Request - Your Approval Required</h2>
+          <p>A Pyxis access request has been submitted for you (<strong>${employeeName}</strong>) and requires your approval.</p>
+          <p>Please review the information and approve the request by clicking the link below:</p>
+          <p><a href="${approvalLink}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Review and Approve Request</a></p>
+          <p>If you have any questions, please contact your manager or the pharmacy team.</p>
+          <hr>
+          <p style="color: #666; font-size: 12px;">This is an automated message from the Pyxis Access Request System.</p>
+        </div>
+      `
+    };
+  }
+
   getDirectorApprovalEmail(employeeName, approvalLink) {
     return {
       subject: `Pyxis Access Request - Director Approval Required for ${employeeName}`,
