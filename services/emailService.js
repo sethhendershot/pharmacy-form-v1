@@ -182,11 +182,14 @@ class EmailService {
   }
 
   // Email templates
-  getEmployeeApprovalEmail(employeeName, approvalLink) {
+  getEmployeeApprovalEmail(employeeName, approvalLink, baseUrl) {
     return {
       subject: `Pyxis Access Request - Your Approval Required for ${employeeName}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="${baseUrl}/images/trinity-health-banner.png" alt="Trinity Health Banner" style="max-width: 200px;">
+          </div>
           <h2>Pyxis Access Request - Your Approval Required</h2>
           <p>A Pyxis access request has been submitted for you (<strong>${employeeName}</strong>) and requires your approval.</p>
           <p>Please review the information and approve the request by clicking the link below:</p>
@@ -199,11 +202,14 @@ class EmailService {
     };
   }
 
-  getDirectorApprovalEmail(employeeName, approvalLink) {
+  getDirectorApprovalEmail(employeeName, approvalLink, baseUrl) {
     return {
       subject: `Pyxis Access Request - Director Approval Required for ${employeeName}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="${baseUrl}/images/trinity-health-banner.png" alt="Trinity Health Banner" style="max-width: 200px;">
+          </div>
           <h2>Pyxis Access Request - Director Approval Required</h2>
           <p>A Pyxis access request has been submitted for <strong>${employeeName}</strong> and requires your approval.</p>
           <p>Please review and approve the request by clicking the link below:</p>
@@ -216,11 +222,14 @@ class EmailService {
     };
   }
 
-  getDTGNotificationEmail(employeeName, completionLink) {
+  getDTGNotificationEmail(employeeName, completionLink, baseUrl) {
     return {
       subject: `Pyxis Access Request - DTG Action Required for ${employeeName}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="${baseUrl}/images/trinity-health-banner.png" alt="Trinity Health Banner" style="max-width: 200px;">
+          </div>
           <h2>Pyxis Access Request - DTG Action Required</h2>
           <p>A Pyxis access request for <strong>${employeeName}</strong> has been approved and requires DTG action.</p>
           <p>Please complete the DTG setup by clicking the link below:</p>
@@ -233,11 +242,14 @@ class EmailService {
     };
   }
 
-  getCompletionEmail(employeeName, requestorEmail) {
+  getCompletionEmail(employeeName, requestorEmail, baseUrl) {
     return {
       subject: `Pyxis Access Request Completed for ${employeeName}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="${baseUrl}/images/trinity-health-banner.png" alt="Trinity Health Banner" style="max-width: 200px;">
+          </div>
           <h2>Pyxis Access Request Completed</h2>
           <p>The Pyxis access request for <strong>${employeeName}</strong> has been completed successfully.</p>
           <p>The user has been added to the Pyxis ES system and security group.</p>

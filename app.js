@@ -45,7 +45,7 @@ const STATIC_FORM = {
     { label: 'Middle Initial', type: 'text', defaultValue: 'A' },
     { label: 'Last Name', type: 'text', required: true, defaultValue: 'Doe' },
     { label: 'Trinity Employee ID Number', type: 'text', required: true, defaultValue: '123456' },
-    { label: 'Email Address', type: 'email', required: true, defaultValue: 'john.doe@trinityhealth.org' },
+    { label: 'Email Address', type: 'email', required: true, defaultValue: 'seth.hendershot.trinity@gmail.com' },
     { label: 'Professional Credentials', type: 'text', placeholder: 'RN, LPN, MD, RPh, CPhT, etc', required: true, defaultValue: 'RN' },
     { label: 'User Type', type: 'select', options: ['Trinity Employee', 'Contract Staff of Locum Anesthesia Provider'], required: true, defaultValue: 'Trinity Employee' },
     { label: 'Job Title/ User Role', type: 'select', options: [
@@ -119,7 +119,7 @@ app.post('/submit', (req, res) => {
   const employeeName = `${newEntry.data['First Name']} ${newEntry.data['Last Name']}`;
   const employeeEmail = newEntry.data['Email Address'];
   const approvalLink = `${process.env.BASE_URL}/stage/2/${newEntry.id}`;
-  const emailTemplate = emailService.getEmployeeApprovalEmail(employeeName, approvalLink);
+  const emailTemplate = emailService.getEmployeeApprovalEmail(employeeName, approvalLink, process.env.BASE_URL);
   if (employeeEmail) {
     emailService.sendEmail(employeeEmail, emailTemplate.subject, emailTemplate.html);
   } else {
@@ -175,7 +175,7 @@ app.post('/stage/:stage/:id', (req, res) => {
     
     // Send email to director
     const employeeName = `${entry.data['First Name']} ${entry.data['Last Name']}`;
-    const emailTemplate = emailService.getDirectorApprovalEmail(employeeName, nextLink);
+    const emailTemplate = emailService.getDirectorApprovalEmail(employeeName, nextLink, process.env.BASE_URL);
     emailService.sendEmail(process.env.DIRECTOR_EMAIL, emailTemplate.subject, emailTemplate.html);
     
     saveEntries(entries);
@@ -200,7 +200,7 @@ app.post('/stage/:stage/:id', (req, res) => {
     // Send email to selected recipients
     const employeeName = `${entry.data['First Name']} ${entry.data['Last Name']}`;
     const nextLink = `${process.env.BASE_URL}/stage/4/${entry.id}`;
-    const emailTemplate = emailService.getDTGNotificationEmail(employeeName, nextLink);
+    const emailTemplate = emailService.getDTGNotificationEmail(employeeName, nextLink, process.env.BASE_URL);
     
     // Get selected recipients
     const selectedRecipients = Array.isArray(newData['Email Recipients']) 
@@ -249,7 +249,7 @@ app.post('/stage/:stage/:id', (req, res) => {
     // Send completion email to the employee
     const employeeName = `${entry.data['First Name']} ${entry.data['Last Name']}`;
     const employeeEmail = entry.data['Email Address'];
-    const emailTemplate = emailService.getCompletionEmail(employeeName);
+    const emailTemplate = emailService.getCompletionEmail(employeeName, null, process.env.BASE_URL);
     if (employeeEmail) {
       emailService.sendEmail(employeeEmail, emailTemplate.subject, emailTemplate.html);
     } else {
@@ -298,18 +298,18 @@ app.post('/entries/:id/resend-email', (req, res) => {
   if (emailType === 'director') {
     // Send director approval email
     const approvalLink = `${process.env.BASE_URL}/stage/3/${entry.id}`;
-    const emailTemplate = emailService.getDirectorApprovalEmail(employeeName, approvalLink);
+    const emailTemplate = emailService.getDirectorApprovalEmail(employeeName, approvalLink, process.env.BASE_URL);
     emailResult = emailService.sendEmail(process.env.DIRECTOR_EMAIL, emailTemplate.subject, emailTemplate.html);
   } else if (emailType === 'dtg') {
     // Send DTG notification email
     const completionLink = `${process.env.BASE_URL}/stage/4/${entry.id}`;
-    const emailTemplate = emailService.getDTGNotificationEmail(employeeName, completionLink);
+    const emailTemplate = emailService.getDTGNotificationEmail(employeeName, completionLink, process.env.BASE_URL);
     emailResult = emailService.sendEmail(process.env.DTG_EMAIL, emailTemplate.subject, emailTemplate.html);
   } else if (emailType === 'completion') {
     // Send completion email to employee
     const employeeEmail = entry.data['Email Address'];
     if (employeeEmail) {
-      const emailTemplate = emailService.getCompletionEmail(employeeName);
+      const emailTemplate = emailService.getCompletionEmail(employeeName, null, process.env.BASE_URL);
       emailResult = emailService.sendEmail(employeeEmail, emailTemplate.subject, emailTemplate.html);
     } else {
       emailResult = { success: false, error: 'No email address found for employee' };
