@@ -236,6 +236,12 @@ app.post('/stage/:stage/:id', (req, res) => {
     entry.data = { ...entry.data, ...newData };
     entry.status = 'stage 4 completed';
     entry.updatedAt = new Date().toISOString();
+    
+    // Send email to Tenille when DTG completes the setup
+    const employeeName = `${entry.data['First Name']} ${entry.data['Last Name']}`;
+    const emailTemplate = emailService.getDTGCompletionEmail(employeeName, process.env.BASE_URL);
+    emailService.sendEmail(process.env.TENILLE_EMAIL, emailTemplate.subject, emailTemplate.html);
+    
     saveEntries(entries);
     res.render('success', { nextLink: `${process.env.BASE_URL}/stage/5/${entry.id}` });
   } else if (stage == 5) {

@@ -42,54 +42,54 @@
             <form action="/stage/<%= stage %>/<%= entry.id %>" method="POST">
               <% if (stage === 2) { %>
                 <h4>Employee Verification</h4>
-                <!--
-                <div class="mb-3 form-check">
-                  <input class="form-check-input" type="checkbox" name="Employee Verify Accuracy" id="EmployeeVerifyAccuracy">
-                  <label class="form-check-label" for="EmployeeVerifyAccuracy">
-                    I verify the accuracy of the information above
-                  </label>
-                </div>
-                -->
-                <!--
-                <div class="mb-3 form-check">
-                  <input class="form-check-input" type="checkbox" name="Employee Verified Login" id="EmployeeVerifiedLogin">
-                  <label class="form-check-label" for="EmployeeVerifiedLogin">
-                    I have verified the user HAS successfully logged in to Pyxis ES and has established Bio-ID
-                  </label>
-                </div>
-                -->
-                <div class="mb-3 form-check">
-                  <input class="form-check-input" type="checkbox" name="Employee Agreement" id="EmployeeAgreement" required>
-                  <label class="form-check-label" for="EmployeeAgreement">
-                    By Checking this box I agree that I have read the statement
-                  </label>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Employee Signature</label>
-                  <canvas id="EmployeeSignatureCanvas" width="400" height="200" style="border:1px solid #000;"></canvas>
-                  <input type="hidden" name="Employee Signature" id="EmployeeSignatureData">
-                  <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="clearSignature('EmployeeSignature')">Clear</button>
+                <div class="row">
+                  <div class="col-md-6">
+                    <!-- Signatures Column -->
+                    <div class="mb-3">
+                      <label class="form-label">Employee Signature</label>
+                      <canvas id="EmployeeSignatureCanvas" width="400" height="200" style="border:1px solid #000;"></canvas>
+                      <input type="hidden" name="Employee Signature" id="EmployeeSignatureData">
+                      <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="clearSignature('EmployeeSignature')">Clear</button>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <!-- Other Form Elements Column -->
+                    <div class="mb-3 form-check">
+                      <input class="form-check-input" type="checkbox" name="Employee Agreement" id="EmployeeAgreement" required>
+                      <label class="form-check-label" for="EmployeeAgreement">
+                        By Checking this box I agree that I have read the statement
+                      </label>
+                    </div>
+                  </div>
                 </div>
               <% } else if (stage === 3) { %>
                 <h4>Pharmacy Director Approval</h4>
-                <div class="mb-3">
-                  <label class="form-label">Pharmacy Director Signature</label>
-                  <canvas id="PharmacyDirectorSignatureCanvas" width="400" height="200" style="border:1px solid #000;"></canvas>
-                  <input type="hidden" name="Pharmacy Director Signature" id="PharmacyDirectorSignatureData">
-                  <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="clearSignature('PharmacyDirectorSignature')">Clear</button>
-                </div>
-                <div class="mb-3">
-                  <label for="approvalDate" class="form-label">Approval Date</label>
-                  <input type="date" class="form-control" id="approvalDate" name="Pharmacy Director Approval Date" required>
-                </div>
-                <div class="mb-3">
-                  <label for="emailRecipients" class="form-label">Send Notification Emails To:</label>
-                  <select multiple class="form-select" id="emailRecipients" name="Email Recipients" required>
-                    <option value="rachel" selected>Rachel</option>
-                    <option value="mike">Mike</option>
-                    <option value="charles">Charles</option>
-                  </select>
-                  <div class="form-text">Select who should receive email notifications about this approval.</div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <!-- Signatures Column -->
+                    <div class="mb-3">
+                      <label class="form-label">Pharmacy Director Signature</label>
+                      <canvas id="PharmacyDirectorSignatureCanvas" width="400" height="200" style="border:1px solid #000;"></canvas>
+                      <input type="hidden" name="Pharmacy Director Signature" id="PharmacyDirectorSignatureData">
+                      <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="clearSignature('PharmacyDirectorSignature')">Clear</button>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <!-- Other Form Elements Column -->
+                    <div class="mb-3">
+                      <label for="approvalDate" class="form-label">Approval Date</label>
+                      <input type="date" class="form-control" id="approvalDate" name="Pharmacy Director Approval Date" required>
+                    </div>
+                    <div class="mb-3">
+                      <label for="emailRecipients" class="form-label">Send Notification Emails To:</label>
+                      <select multiple class="form-select" id="emailRecipients" name="Email Recipients" required>
+                        <option value="rachel" selected>Rachel</option>
+                        <option value="mike">Mike</option>
+                        <option value="charles">Charles</option>
+                      </select>
+                      <div class="form-text">Select who should receive email notifications about this approval.</div>
+                    </div>
+                  </div>
                 </div>
               <% } else if (stage === 4) { %>
                 <h4>DTG Addition</h4>
@@ -106,11 +106,19 @@
                 </div>
               <% } else if (stage === 5) { %>
                 <h4>Form Completion</h4>
-                <div class="mb-3">
-                  <label class="form-label">Completion Signature</label>
-                  <canvas id="CompletionSignatureCanvas" width="400" height="200" style="border:1px solid #000;"></canvas>
-                  <input type="hidden" name="Completion Signature" id="CompletionSignatureData">
-                  <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="clearSignature('CompletionSignature')">Clear</button>
+                <div class="row">
+                  <div class="col-md-6">
+                    <!-- Signatures Column -->
+                    <div class="mb-3">
+                      <label class="form-label">Completion Signature</label>
+                      <canvas id="CompletionSignatureCanvas" width="400" height="200" style="border:1px solid #000;"></canvas>
+                      <input type="hidden" name="Completion Signature" id="CompletionSignatureData">
+                      <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="clearSignature('CompletionSignature')">Clear</button>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <!-- Other Form Elements Column - Empty for stage 5 -->
+                  </div>
                 </div>
               <% } %>
               

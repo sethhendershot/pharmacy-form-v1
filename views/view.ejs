@@ -110,9 +110,17 @@
                   <% } %>
                 </div>
                 <div class="mb-3">
-                  <label class="form-label fw-bold">Pharmacy Signature</label>
-                  <% if (entry.data['Pharmacy Signature']) { %>
-                    <img src="<%= entry.data['Pharmacy Signature'] %>" alt="Pharmacy Signature" class="img-fluid border">
+                  <label class="form-label fw-bold">Pharmacy Director Signature</label>
+                  <% if (entry.data['Pharmacy Director Signature']) { %>
+                    <img src="<%= entry.data['Pharmacy Director Signature'] %>" alt="Pharmacy Director Signature" class="img-fluid border">
+                  <% } else { %>
+                    <p>No signature</p>
+                  <% } %>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-bold">Completion Signature</label>
+                  <% if (entry.data['Completion Signature']) { %>
+                    <img src="<%= entry.data['Completion Signature'] %>" alt="Completion Signature" class="img-fluid border">
                   <% } else { %>
                     <p>No signature</p>
                   <% } %>

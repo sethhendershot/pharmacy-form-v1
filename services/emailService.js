@@ -260,6 +260,25 @@ class EmailService {
       `
     };
   }
+
+  getDTGCompletionEmail(employeeName, baseUrl) {
+    return {
+      subject: `Pyxis Access Request - DTG Setup Completed for ${employeeName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="${baseUrl}/images/trinity-health-banner.png" alt="Trinity Health Banner" style="max-width: 200px;">
+          </div>
+          <h2>Pyxis Access Request - DTG Setup Completed</h2>
+          <p>The DTG setup has been completed for <strong>${employeeName}</strong>'s Pyxis access request.</p>
+          <p>The user has been added to the Pyxis ES security group and the request is ready for final completion.</p>
+          <p>Please proceed with the final steps to complete the access request.</p>
+          <hr>
+          <p style="color: #666; font-size: 12px;">This is an automated message from the Pyxis Access Request System.</p>
+        </div>
+      `
+    };
+  }
 }
 
 module.exports = new EmailService();
