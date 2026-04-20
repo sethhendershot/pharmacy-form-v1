@@ -103,8 +103,8 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label fw-bold">Manager Signature</label>
-                  <% if (entry.data['Manager Signature'] || entry.data['Signature']) { %>
-                    <img src="<%= entry.data['Manager Signature'] || entry.data['Signature'] %>" alt="Manager Signature" class="img-fluid border">
+                  <% if (entry.data['Manager Signature']) { %>
+                    <img src="<%= entry.data['Manager Signature'] %>" alt="Manager Signature" class="img-fluid border">
                   <% } else { %>
                     <p>No signature</p>
                   <% } %>
