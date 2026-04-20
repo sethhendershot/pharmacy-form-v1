@@ -56,7 +56,7 @@ const STATIC_FORM = {
       'RN (charge)', 'RN (staff)', 'Surgical Assistant'
     ], required: true, defaultValue: 'RN (staff)' },
     { label: 'I verify the accuracy of the information above', type: 'checkbox', required: true, defaultValue: true },
-    { label: 'Signature', type: 'signature', required: true, defaultValue: 'Test Signature' }
+    { label: 'Manager Signature', type: 'signature', required: true, defaultValue: 'Test Signature' }
   ]
 };
 
