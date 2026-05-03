@@ -24,12 +24,12 @@
               <% Object.keys(entry.data).forEach(key => { %>
                 <% if (key !== 'Manager Verify Accuracy' && key !== 'Manager Verified Login') { %>
                 <% if (key.includes('Signature')) { %>
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-12 mb-3">
                     <label class="form-label"><strong><%= key %>:</strong></label><br>
                     <img src="<%= entry.data[key] %>" alt="Signature" style="border:1px solid #000; max-width:100%;">
                   </div>
                 <% } else { %>
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-12 mb-3">
                     <strong><%= key %>:</strong> <%= entry.data[key] %>
                   </div>
                 <% } %>
@@ -42,7 +42,7 @@
             <form action="/stage/3/<%= entry.id %>" method="POST">
               <h4>Approval</h4>
               <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-12">
                   <!-- Signatures Column -->
                   <div class="mb-3">
                     <label class="form-label">Pharmacy Director Signature</label>
@@ -51,7 +51,7 @@
                     <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="clearSignature('PharmacyDirectorSignature')">Clear</button>
                   </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-12">
                   <!-- Other Form Elements Column -->
                   <div class="mb-3">
                     <label for="approvalDate" class="form-label">Approval Date</label>

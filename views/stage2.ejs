@@ -24,12 +24,12 @@
               <% Object.keys(entry.data).forEach(key => { %>
                 <% if (key !== 'Manager Verify Accuracy' && key !== 'Manager Verified Login' && key !== 'Employee Agreement' && key !== 'The user has been added to the Security Group') { %>
                 <% if (key.includes('Signature')) { %>
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-12 mb-3">
                     <label class="form-label"><strong><%= key %>:</strong></label><br>
                     <img src="<%= entry.data[key] %>" alt="Signature" style="border:1px solid #000; max-width:100%;">
                   </div>
                 <% } else { %>
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-12 mb-3">
                     <strong><%= key %>:</strong> <%= entry.data[key] %>
                   </div>
                 <% } %>
