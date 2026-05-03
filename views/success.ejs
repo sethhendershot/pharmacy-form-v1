@@ -20,7 +20,9 @@
           </div>
           <div class="card-body">
             <p>Your request has been submitted successfully.</p>
+            <% if (nextLink) { %>
             <p>Next step link: <a href="<%= nextLink %>"><%= nextLink %></a></p>
+            <% } %>
             <a href="/" class="btn btn-primary">Submit Another Request</a>
           </div>
         </div>

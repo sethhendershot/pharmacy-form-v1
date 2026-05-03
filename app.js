@@ -144,16 +144,7 @@ app.get('/stage/:stage/:id', (req, res) => {
   if (stage == 4 && entry.status !== 'stage 3 completed') {
     return res.status(403).send('Invalid stage for this entry');
   }
-  if (stage == 5 && entry.status !== 'stage 4 completed') {
-    return res.status(403).send('Invalid stage for this entry');
-  }
-  if (stage == 4) {
-    res.render('stage', { stage: parseInt(stage), entry });
-  } else if (stage == 5) {
-    res.render('stage', { stage: parseInt(stage), entry });
-  } else {
-    res.render('stage', { stage: parseInt(stage), entry });
-  }
+  res.render(`stage${stage}`, { entry });
 });
 
 app.post('/stage/:stage/:id', (req, res) => {
@@ -170,13 +161,31 @@ app.post('/stage/:stage/:id', (req, res) => {
     entry.stage = 2;
     entry.status = 'stage 2 completed';
     entry.updatedAt = new Date().toISOString();
-    const nextLink = `${process.env.BASE_URL}/stage/3/${entry.id}`;
+    const nextLink = `/stage/3/${entry.id}`;
     console.log('Email link for pharmacy director:', nextLink); // Keep for logging
     
-    // Send email to director
+    // Send notification emails to DTG team
     const employeeName = `${entry.data['First Name']} ${entry.data['Last Name']}`;
     const emailTemplate = emailService.getDirectorApprovalEmail(employeeName, nextLink, process.env.BASE_URL);
-    emailService.sendEmail(process.env.DIRECTOR_EMAIL, emailTemplate.subject, emailTemplate.html);
+    console.log('Sending stage 2 completion emails to DTG team...');
+    if (process.env.RACHEL_EMAIL) {
+      const result = emailService.sendEmail(process.env.RACHEL_EMAIL, emailTemplate.subject, emailTemplate.html);
+      console.log(`Email sent to Rachel (${process.env.RACHEL_EMAIL}):`, result);
+    } else {
+      console.log('RACHEL_EMAIL not set');
+    }
+    if (process.env.MIKE_EMAIL) {
+      const result = emailService.sendEmail(process.env.MIKE_EMAIL, emailTemplate.subject, emailTemplate.html);
+      console.log(`Email sent to Mike (${process.env.MIKE_EMAIL}):`, result);
+    } else {
+      console.log('MIKE_EMAIL not set');
+    }
+    if (process.env.CHARLES_EMAIL) {
+      const result = emailService.sendEmail(process.env.CHARLES_EMAIL, emailTemplate.subject, emailTemplate.html);
+      console.log(`Email sent to Charles (${process.env.CHARLES_EMAIL}):`, result);
+    } else {
+      console.log('CHARLES_EMAIL not set');
+    }
     
     saveEntries(entries);
     res.render('success', { nextLink });
@@ -197,44 +206,14 @@ app.post('/stage/:stage/:id', (req, res) => {
     entry.status = 'stage 3 completed';
     entry.updatedAt = new Date().toISOString();
     
-    // Send email to selected recipients
-    const employeeName = `${entry.data['First Name']} ${entry.data['Last Name']}`;
-    const nextLink = `${process.env.BASE_URL}/stage/4/${entry.id}`;
-    const emailTemplate = emailService.getDTGNotificationEmail(employeeName, nextLink, process.env.BASE_URL);
-    
-    // Get selected recipients
-    const selectedRecipients = Array.isArray(newData['Email Recipients']) 
-      ? newData['Email Recipients'] 
-      : [newData['Email Recipients']].filter(Boolean);
-    
-    // Send email to each selected recipient
-    selectedRecipients.forEach(recipient => {
-      let recipientEmail = '';
-      switch(recipient.toLowerCase()) {
-        case 'rachel':
-          recipientEmail = process.env.RACHEL_EMAIL;
-          break;
-        case 'mike':
-          recipientEmail = process.env.MIKE_EMAIL;
-          break;
-        case 'charles':
-          recipientEmail = process.env.CHARLES_EMAIL;
-          break;
-      }
-      
-      if (recipientEmail) {
-        emailService.sendEmail(recipientEmail, emailTemplate.subject, emailTemplate.html);
-      }
-    });
-    
     saveEntries(entries);
-    res.render('success', { nextLink: nextLink });
+    res.render('success', { nextLink: `/stage/4/${entry.id}` });
   } else if (stage == 4) {
-    // DTG addition
+    // Form completion
     const newData = req.body;
     processCheckboxes(newData);
     entry.data = { ...entry.data, ...newData };
-    entry.status = 'stage 4 completed';
+    entry.status = 'completed';
     entry.updatedAt = new Date().toISOString();
     
     // Send email to Tenille when DTG completes the setup
@@ -242,22 +221,11 @@ app.post('/stage/:stage/:id', (req, res) => {
     const emailTemplate = emailService.getDTGCompletionEmail(employeeName, process.env.BASE_URL);
     emailService.sendEmail(process.env.TENILLE_EMAIL, emailTemplate.subject, emailTemplate.html);
     
-    saveEntries(entries);
-    res.render('success', { nextLink: `${process.env.BASE_URL}/stage/5/${entry.id}` });
-  } else if (stage == 5) {
-    // Completion
-    const newData = req.body;
-    processCheckboxes(newData);
-    entry.data = { ...entry.data, ...newData };
-    entry.status = 'stage 5 completed';
-    entry.updatedAt = new Date().toISOString();
-    
     // Send completion email to the employee
-    const employeeName = `${entry.data['First Name']} ${entry.data['Last Name']}`;
     const employeeEmail = entry.data['Email Address'];
-    const emailTemplate = emailService.getCompletionEmail(employeeName, null, process.env.BASE_URL);
+    const completionTemplate = emailService.getCompletionEmail(employeeName, null, process.env.BASE_URL);
     if (employeeEmail) {
-      emailService.sendEmail(employeeEmail, emailTemplate.subject, emailTemplate.html);
+      emailService.sendEmail(employeeEmail, completionTemplate.subject, completionTemplate.html);
     } else {
       console.log('No email address found for completion notification');
     }
