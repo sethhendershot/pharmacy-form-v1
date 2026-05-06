@@ -199,15 +199,46 @@ app.post('/stage/:stage/:id', (req, res) => {
     saveEntries(entries);
     res.render('overview', { entry, nextLink: `/stage/2/${entry.id}` });
   } else if (stage == 3) {
-    // Pharmacy Director approval
+    // DTG approval
     const newData = req.body;
     processCheckboxes(newData);
     entry.data = { ...entry.data, ...newData };
-    entry.status = 'stage 3 completed';
+    entry.status = 'completed';
     entry.updatedAt = new Date().toISOString();
-    
+
+    const employeeName = `${entry.data['First Name']} ${entry.data['Last Name']}`;
+
+    // Send instruction email to DTG
+    const instructionLink = `${process.env.BASE_URL}/view/${entry.id}`;
+    const instructionTemplate = emailService.getDTGNotificationEmail(employeeName, instructionLink, process.env.BASE_URL);
+    if (process.env.DTG_EMAIL) {
+      const result = emailService.sendEmail(process.env.DTG_EMAIL, instructionTemplate.subject, instructionTemplate.html);
+      console.log(`Email sent to DTG (${process.env.DTG_EMAIL}):`, result);
+    } else {
+      console.log('DTG_EMAIL not set');
+    }
+
+    // Send completion email to the employee
+    const employeeEmail = entry.data['Email Address'];
+    const completionTemplate = emailService.getCompletionEmail(employeeName, null, process.env.BASE_URL);
+    if (employeeEmail) {
+      const result = emailService.sendEmail(employeeEmail, completionTemplate.subject, completionTemplate.html);
+      console.log(`Completion email sent to employee (${employeeEmail}):`, result);
+    } else {
+      console.log('No email address found for employee completion notification');
+    }
+
+    // Send notification to Tenille
+    const tenilleTemplate = emailService.getDTGCompletionEmail(employeeName, process.env.BASE_URL);
+    if (process.env.TENILLE_EMAIL) {
+      const result = emailService.sendEmail(process.env.TENILLE_EMAIL, tenilleTemplate.subject, tenilleTemplate.html);
+      console.log(`Notification email sent to Tenille (${process.env.TENILLE_EMAIL}):`, result);
+    } else {
+      console.log('TENILLE_EMAIL not set');
+    }
+
     saveEntries(entries);
-    res.render('success', { nextLink: `/stage/4/${entry.id}` });
+    res.render('success', { nextLink: null });
   } else if (stage == 4) {
     // Form completion
     const newData = req.body;
